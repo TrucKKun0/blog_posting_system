@@ -18,5 +18,26 @@ const userSchema = mongoose.Schema({
     }
 },{timestamps:true});
 
+userSchema.pre('save', async function(next){
+    if(this.isModified('password')){
+        try{
+            this.password = await argon2.hash(this.password);
+        }catch(err){
+            return next(err);
+        }
+    }
+})
+
+userSchema.methods.comparePassword = async function(candidatePassword){
+    try{
+        return await argon2.verify(this.password, candidatePassword);
+    }catch(err){
+        throw err;
+    }
+}
+userSchema.index({username:"text", email:"text"});
+module.exports = mongoose.model('User', userSchema);
+
+
 
 
