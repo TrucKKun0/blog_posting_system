@@ -1,7 +1,7 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const RefreshToken = require('../models/refreshTokenModel');
+const RefreshToken = require('../models/RefreshModel');
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const generateToken = async(user)=>{
     //generate Access Token

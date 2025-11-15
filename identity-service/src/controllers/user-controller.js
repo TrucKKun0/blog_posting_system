@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../models/UserModel');
 
 const logger = require('../utils/logger');
 const {validateRegisterUser,validateLoginUser} = require('../utils/validator');

@@ -1,9 +1,11 @@
 const cors = require('cors');
-
+const logger = require('../utils/logger');
 const configuration = ()=>{
     return cors({
         origin:(origin,callback)=>{
-            allowedCors = ['http://localhost:3000']
+            allowedCors = ['http://localhost:3000',
+                'http://localhost:3001'
+            ]
 
             if(!origin || allowedCors.indexOf(origin)!==-1){
                 callback(null,true)
