@@ -35,6 +35,14 @@ userSchema.methods.comparePassword = async function(candidatePassword){
         throw err;
     }
 }
+userSchema.methods.changePassword = async function(newPassword){
+    try{
+        this.password = await argon2.hash(newPassword);
+        await this.save();
+    }catch(err){
+        throw err;
+    }
+}
 userSchema.index({username:"text", email:"text"});
 module.exports = mongoose.model('User', userSchema);
 

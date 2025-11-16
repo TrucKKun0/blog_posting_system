@@ -16,9 +16,16 @@ const validateUserLogin = async(data)=>{
     })
     return schema.validate(data);
 }
+const validateForgetPassword = async(data)=>{
+    const schema = joi.object({
+        email:joi.string().email().required()
+    })
+    return schema.validate(data);
+}
 
 module.exports = {
     validateUserRegistration,
-    validateUserLogin
+    validateUserLogin,
+    validateForgetPassword
 }
 
