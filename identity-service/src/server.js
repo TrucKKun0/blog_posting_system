@@ -19,8 +19,12 @@ app.use(rateLimiter(10,1000*60*60));//10 requests per minute
 app.use(helmet());
 app.use(errorHandler);
 
-app.use('api/users',userRouter);
+app.use((req,res,next)=>{
+    logger.info(`Request received from ${req.ip} to ${req.url} with method ${req.method} browser ${req.headers['user-agent']}`);
+    next();
+})
 
+app.use('api/users',userRouter);
 
 app.listen(PORT,()=>{
     console.log(`Idenitiy Server is running in port ${PORT}`);
