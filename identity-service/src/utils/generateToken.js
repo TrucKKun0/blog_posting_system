@@ -8,7 +8,7 @@ const generateToken = async(user)=>{
     const accessToken = jwt.sign({
         userId : user._id,
         email : user.email
-    },JWT_SECRET_KEY,{expriresIn : '1h'});
+    },JWT_SECRET_KEY,{expiresIn : '1h'});
     //generate Refresh Token
     const refreshToken = crypto.randomBytes(40).toString('hex');
     const expiresAt  = new Date();
@@ -22,4 +22,4 @@ const generateToken = async(user)=>{
     return {accessToken,refreshToken};
 }
 
-module.exports = generateToken;
+module.exports = {generateToken};

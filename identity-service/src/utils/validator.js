@@ -18,7 +18,8 @@ const validateUserLogin = async(data)=>{
 }
 const validateForgetPassword = async(data)=>{
     const schema = joi.object({
-        email:joi.string().email().required()
+        email:joi.string().email().required(),
+        newPassword:joi.string().min(6).max(30).required()
     })
     return schema.validate(data);
 }

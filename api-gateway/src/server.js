@@ -19,7 +19,7 @@ if (!IDENTITY_SERVICE_URL) {
 
 app.use(express.json());
 app.use(configuration());
-app.use(ipBasedRateLimiter(10, 1000 * 60 * 60)); // 10 requests per hour
+app.use(ipBasedRateLimiter(50, 1000 * 60 * 60)); // 10 requests per hour
 app.use(helmet());
 
 // Global request logging
