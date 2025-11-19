@@ -22,7 +22,7 @@ app.use(helmet());
 
 // Request logging
 app.use((req, res, next) => {
-    logger.info(`[Identity Service] ${req.method} ${req.url} from ${req.ip}`);
+    logger.info(`[Identity Service] ${req.method} ${req.url} from ${req.get['User-Agent']} ${req.ip}`);
     next();
 });
 

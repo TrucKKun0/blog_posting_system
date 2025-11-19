@@ -20,7 +20,7 @@ const configuration = () => {
             }
         },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'Authorization','x-user-id'],
         exposedHeaders: ['X-Total-Count', 'Content-Range'],
         credentials: true,
         preflightContinue: true,
