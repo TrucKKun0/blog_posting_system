@@ -29,6 +29,8 @@ userSchema.pre('save', async function(next){
     }
 })
 
+userSchema.index({username:"text"});
+
 userSchema.methods.comparePassword = async function(candidatePassword){
     try{
         return await argon2.verify(this.password, candidatePassword);
