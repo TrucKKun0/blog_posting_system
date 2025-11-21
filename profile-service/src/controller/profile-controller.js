@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 const UserProfile = require('../models/userProfile');
 const { validateUpdateProfile } = require('../utils/validator');
 
-const updateProfile = async(req,res)=>{
+const updateUserProfile = async(req,res)=>{
         logger.info('Update profile endpoint hit');
         try{
             const {userId} = req.user;
@@ -37,4 +37,4 @@ const updateProfile = async(req,res)=>{
         }
 }
 
-module.exports = {updateProfile};
+module.exports = {updateUserProfile};

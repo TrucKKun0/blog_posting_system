@@ -5,9 +5,8 @@ const app = express();
 const logger = require('./utils/logger');
 const {configuration} = require('./config/corsConfig');
 const helmet = require('helmet');
-const profileRouter = require('./routers/ProfileRouter');
-const errorHandler = require('./middlewares/errorHandler');
-const profileRouter = require('./routers/ProfileRouter');
+const profileRouter = require('./router/profileRouter');
+const errorHandler = require('./middlewares/errorHandlers');
 const ipBasedRateLimiter = require('./config/ipBasedRateLimit');
 
 
@@ -17,8 +16,8 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}));
 app.use(configuration);
 app.use(helmet());
-app.use(errorHandler());
-app.use(ipBasedRateLimiter(50,1000*60*60));
+app.use(errorHandler);
+app.use(ipBasedRateLimiter(5,1000*60*60));
 
 app.use('/api/user',profileRouter);
 

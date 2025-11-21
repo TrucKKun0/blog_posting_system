@@ -39,5 +39,6 @@ app.use('/v1/profile', profileServiceProxy);
 
 app.listen(PORT, () => {
     logger.info(`API Gateway is running on port ${PORT}`);
-    logger.info(`Proxying /v1/auth/* to ${IDENTITY_SERVICE_URL}`);
+    logger.info(`Identity Service is running on port ${IDENTITY_SERVICE_URL}`);
+    logger.info(`Profile Service is running on port ${PROFILE_SERVICE_URL}`);
 });
