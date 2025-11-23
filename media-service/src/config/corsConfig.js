@@ -1,4 +1,4 @@
-require(dotenv).config();
+require("dotenv").config();
 const logger = require('../utils/logger');
 const cors = require('cors');
 

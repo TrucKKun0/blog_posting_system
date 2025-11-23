@@ -1,12 +1,12 @@
-require(dotenv).config();
-
+require("dotenv").config();
+const NODE_ENV = process.env.NODE_ENV || "development";
 const winston = require('winston');
 
-const {createLogger , myFormat, transports} = winston;
+const {createLogger , format, transports} = winston;
 const {combine, timestamp, printf} = format;
 
- myFormat = printf(({level,message,timestamp})=>{
-    return `${level} {${timestamp} ${message} }`;
+ const myFormat = printf(({level,message,timestamp})=>{
+    return `${level} ${timestamp} ${message} `;
 })
 
 const logger = createLogger({
