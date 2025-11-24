@@ -1,5 +1,5 @@
 const User = require('../models/UserModel');
-
+const RefreshToken = require('../models/RefreshModel');
 const logger = require('../utils/logger');
 const {validateUserRegistration, validateUserLogin, validateForgetPassword} = require('../utils/validator');
 const {generateToken} = require('../utils/generateToken');
@@ -35,11 +35,17 @@ const registerUser = async(req,res)=>{
         })
         await user.save();
         logger.info(`User registered successfully ${user._id}`);
-        const {accessToken,refreshToken} = await generateToken(user);
+        const {accessToken,hashedRefreshToken} = await generateToken(user);
+        res.cookie('refreshToken',hashedRefreshToken,{
+            httpOnly:true,
+            secure:true,
+            sameSite:'strict',
+            maxAge : 7 * 24 * 60 * 60 * 1000 // 7 days
+        })
         res.status(201).json({
             success:true,
             AccessToken:accessToken,
-            RefreshToken:refreshToken,
+            RefreshToken:hashedRefreshToken,
             message:"User registered successfully"
         })
     }catch(error){
@@ -79,7 +85,13 @@ const loginUser = async(req,res)=>{
                 message:"Invalid password"
             })
         }
-        const {accessToken,refreshToken} = await generateToken(user);
+        const {accessToken,hashedRefreshToken} = await generateToken(user);
+        res.cookie('refreshToken',hashedRefreshToken,{
+            httpOnly : true,
+            secure : true,
+            sameSite : 'strict',
+            maxAge : 7 * 24 * 60 * 60 *1000 // 7 days
+        })
         res.status(200).json({
             success:true,
             AccessToken:accessToken,
@@ -127,6 +139,53 @@ const forgetPassword = async(req,res)=>{
         res.status(501).json({
             status: false,
             message: `Error occured while changing password ${error.message}`
+        })
+    }
+}
+const generateNewAccessToken = async (req,res)=>{
+    logger.info("Generate new access token endpoint hit");
+    try{
+        const refreshToken = req.cookie.refreshToken;
+        if(!refreshToken){
+            logger.erro(`Refresh token not provided. Please Login again`);
+            return res.status(401).json({
+                success:false,
+                message:"Refresh token not provided. Please Login again"
+            })
+        }
+        const hashedRefreshToken = crypto.Hash('sha256').update(refreshToken).digest('hex');
+
+        const storedRefreshToken = await RefreshToken.findOne({token:hashedRefreshToken});
+        if(!storedRefreshToken){
+            logger.error(`Refresh token not found. Please Login again`);
+            return res.status(401).json({
+                success:false,
+                message:"Refresh token not found. Please Login again"
+            })
+        }
+        if(storedRefreshToken.expiresAt < Date.now()){
+            logger.error(`Refresh token expired. Please Login again`);
+            return res.status(401).json({
+                success:false,
+                message:"Refresh token expired. Please Login again"
+            })
+        }
+
+        const newAccessToken = jwt.sign({
+            userId : storedRefreshToken.userId
+        },JWT_SECRET_KEY,{expiresIn : '15m'});
+        res.status(200).json({
+            success:true,
+            AccessToken:newAccessToken,
+            message:"New access token generated successfully"
+        })
+
+
+    }catch(error){
+        logger.error(`Error while generating new access token ${error.message}`);
+        res.status(500).json({
+            success:false,
+            message:error.message
         })
     }
 }
