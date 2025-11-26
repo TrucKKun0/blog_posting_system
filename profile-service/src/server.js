@@ -8,10 +8,15 @@ const helmet = require('helmet');
 const profileRouter = require('./router/profileRouter');
 const errorHandler = require('./middlewares/errorHandlers');
 const ipBasedRateLimiter = require('./config/ipBasedRateLimit');
+const {connectToDB} = require('./config/connectDB');
+const {connectToRabbitMQ} = require('./config/connectToRabbitMq');
+const {consumeEvent} = require('./utils/rabbitmq');
+const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
+
 
 
 const PORT = process.env.PORT || 3000;
-
+connectToDB();
 app.use(express.json())
 app.use(express.urlencoded({extended:true}));
 app.use(configuration);
@@ -21,9 +26,17 @@ app.use(ipBasedRateLimiter(5,1000*60*60));
 
 app.use('/api/user',profileRouter);
 
-app.listen(PORT,()=>{
-    logger.info(`Profile Service is running on port ${PORT}`);
-})
+async function startServer(){
+    await connectToRabbitMQ();
+    //consumeEvent for creating profile
+    await consumeEvent('profile.created',handleProfileCreated);
+    //listening to port
+    app.listen(PORT,()=>{
+        logger.info(`Profile Service is running on port ${PORT}`);
+    })
+}
+startServer();
+
 
 process.on('unhandledRejection',(reason,promise)=>{
     logger.error(`Unhandled Rejection at: ${promise} reason: ${reason}`);

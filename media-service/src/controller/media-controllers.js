@@ -1,7 +1,8 @@
 const logger = require('../utils/logger');
 const {uploadToCloudinary} = require('../utils/cloudinary');
 const Media = require('../models/mediaModel');
-
+const {publishEvent} = require('../utils/rabbitmq');
+const {validateUploadMedia} = require('../utils/validator');
 const uploadMedia =async (req,res)=>{
     logger.info("Upload media endpoint hit");
     try{
@@ -33,6 +34,10 @@ const uploadMedia =async (req,res)=>{
             mimeType,
             userId:userid,
             url:cloudinaryUploadResult.secure_url
+        });
+        await publishEvent('profile.created',{
+            userId:userid,
+            avatarId : newCreatedMedia.publicId
         })
         logger.info(`Media uploaded successfully ${newCreatedMedia._id}`);
         res.status(200).json({
@@ -48,5 +53,6 @@ const uploadMedia =async (req,res)=>{
         })
     }
 }
+
 
 module.exports = {uploadMedia};

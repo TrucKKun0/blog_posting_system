@@ -1,6 +1,6 @@
 const joi = require('joi');
 
-const validateUploadMeadi = async (data)=>{
+const validateUploadMedia = async (data)=>{
     const schema = joi.object({
         publicId : joi.string().required(),
         originalName : joi.string().required(),
@@ -11,4 +11,4 @@ const validateUploadMeadi = async (data)=>{
     return schema.validate(data)
 }
 
-module.exports = {validateUploadMeadi};
+module.exports = {validateUploadMedia};
