@@ -21,7 +21,6 @@ const updateUserProfile = async(req,res)=>{
                 bio,
                 avatarId : avatarId || null
             });
-
             logger.info(`Profile updated successfully ${userProfile.userId}`);
             res.status(200).json({
                 success:true,

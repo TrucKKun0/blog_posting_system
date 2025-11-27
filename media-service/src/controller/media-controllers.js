@@ -23,8 +23,8 @@ const uploadMedia =async (req,res)=>{
             })
         }
         const {originalName,mimeType,buffer} = req.file;
-        const {userid}= req.user;
-        logger.info(`Uploading file: ${originalName} for user: ${userid} and mimeType: ${mimeType}`);
+        const {userId}= req.user;
+        logger.info(`Uploading file: ${originalName} for user: ${userId} and mimeType: ${mimeType}`);
         const cloudinaryUploadResult = await uploadToCloudinary(req.file);
         logger.info("Uploading media to cloudinary successfull. Public Id:"+cloudinaryUploadResult.public_id);
 
@@ -32,11 +32,11 @@ const uploadMedia =async (req,res)=>{
             publicId: cloudinaryUploadResult.public_id,
             originalName,
             mimeType,
-            userId:userid,
+            userId:userId,
             url:cloudinaryUploadResult.secure_url
         });
         await publishEvent('profile.created',{
-            userId:userid,
+            userId:userId,
             avatarId : newCreatedMedia.publicId
         })
         logger.info(`Media uploaded successfully ${newCreatedMedia._id}`);
