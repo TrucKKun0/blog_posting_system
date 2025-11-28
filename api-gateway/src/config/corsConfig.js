@@ -9,6 +9,7 @@ const configuration = () => {
                 'http://localhost:3000', // API Gateway (self)
                 'http://localhost:3001', // Identity Service
                 'http://localhost:3002', // Other services
+                'http://localhost:3003'  // Frontend Application
                 
             ];
 

@@ -7,7 +7,9 @@ const {ipBasedRateLimiter} = require('./utils/rateLimiter');
 const helmet = require('helmet');
 const {identityServiceProxy} = require('./middleware/identity-service-proxy');
 const {profileServiceProxy} = require('./middleware/profile-service-proxy');
+const {mediaServiceProxy} = require('./middleware/media-service-proxy');
 const errorHandler = require('./utils/errorHandler');
+const {validateToken} = require('./middleware/authMiddleware');
 
 // Environment validation
 const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
@@ -33,12 +35,14 @@ app.use((req, res, next) => {
 });
 
 // Setting up proxy for identity service
-app.use('/v1/auth', identityServiceProxy);
-app.use('/v1/profile', profileServiceProxy);
+app.use('/v1/auth', validateToken, identityServiceProxy);
+app.use('/v1/profile', validateToken, profileServiceProxy);
+app.use('/v1/media', validateToken, mediaServiceProxy);
 
 
 app.listen(PORT, () => {
     logger.info(`API Gateway is running on port ${PORT}`);
     logger.info(`Identity Service is running on port ${IDENTITY_SERVICE_URL}`);
     logger.info(`Profile Service is running on port ${PROFILE_SERVICE_URL}`);
+    logger.info(`Media Service is running on port ${MEDIA_SERVICE_URL}`);
 });
