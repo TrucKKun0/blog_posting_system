@@ -1,12 +1,12 @@
 const logger = require('../utils/logger');
 const {uploadToCloudinary} = require('../utils/cloudinary');
 const Media = require('../models/mediaModel');
-const {publishEvent} = require('../utils/rabbitmq');
+const {publishEvent} = require('../config/connectRabbitMq');
 const {validateUploadMedia} = require('../utils/validator');
 const uploadMedia =async (req,res)=>{
     logger.info("Upload media endpoint hit");
     try{
-        const {error} = await validateUploadMeadi(req.body);
+        const {error} = await validateUploadMedia(req.body);
         if(error){
             logger.error(`Validation Error while uploading media ${error.details[0].message}`);
             return res.status(400).json({

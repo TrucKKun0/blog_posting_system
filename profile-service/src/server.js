@@ -9,8 +9,8 @@ const profileRouter = require('./router/profileRouter');
 const errorHandler = require('./middlewares/errorHandlers');
 const ipBasedRateLimiter = require('./config/ipBasedRateLimit');
 const {connectToDB} = require('./config/connectDB');
-const {connectToRabbitMQ} = require('./config/connectToRabbitMq');
-const {consumeEvent} = require('./utils/rabbitmq');
+const {connectToRabbitMQ,consumeEvent} = require('./config/connectToRabbitMq');
+
 const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
 
 

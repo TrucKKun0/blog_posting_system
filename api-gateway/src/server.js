@@ -14,6 +14,7 @@ const {validateToken} = require('./middleware/authMiddleware');
 // Environment validation
 const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;
+const MEDIA_SERVICE_URL = process.env.MEDIA_SERVICE_URL;
 const PORT = process.env.PORT || 3000;
 
 if (!IDENTITY_SERVICE_URL || !PROFILE_SERVICE_URL) {

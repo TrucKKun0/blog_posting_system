@@ -12,7 +12,7 @@ const connectToMongoDB = async () => {
 
     try {
         await mongoose.connect(MONGODB_URI);
-        logger.info(`MongoDB Connected:`);
+        logger.info(`MongoDB Connected`);
         
 
     } catch (error) {

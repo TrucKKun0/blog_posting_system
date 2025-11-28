@@ -9,8 +9,8 @@ const helmet = require('helmet');
 const errorHandler = require('./middlewares/errorHandler');
 const mediaRouter = require('./routes/mediaRouters');
 const { connectToDB } = require('./config/connectDB');
-const {connectToRabbitMQ} = require('./config/connectRabbitMq');
-const {consumeEvent} = require('./utils/rabbitmq');
+const {connectToRabbitMQ,consumeEvent} = require('./config/connectRabbitMq');
+
 const {handleProfileDeleted} = require('./eventHandling/profileMediaHandle');
 
 const PORT = process.env.PORT || 3003;

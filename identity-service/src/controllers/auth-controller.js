@@ -193,5 +193,6 @@ const generateNewAccessToken = async (req,res)=>{
 module.exports = {
     registerUser,
     loginUser,
-    forgetPassword
+    forgetPassword,
+    generateNewAccessToken
 }

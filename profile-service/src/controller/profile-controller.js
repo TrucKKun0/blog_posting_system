@@ -1,6 +1,7 @@
 const logger = require('../utils/logger');
 const UserProfile = require('../models/userProfile');
 const { validateUpdateProfile } = require('../utils/validator');
+const {publishEvent} = require('../config/connectToRabbitMq');
 
 const updateUserProfile = async(req,res)=>{
         logger.info('Update profile endpoint hit');
