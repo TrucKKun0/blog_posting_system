@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 });
 
 // Setting up proxy for identity service
-app.use('/v1/auth', validateToken, identityServiceProxy);
+app.use('/v1/auth', identityServiceProxy);
 app.use('/v1/profile', validateToken, profileServiceProxy);
 app.use('/v1/media', validateToken, mediaServiceProxy);
 

@@ -3,6 +3,9 @@ const RefreshToken = require('../models/RefreshModel');
 const logger = require('../utils/logger');
 const {validateUserRegistration, validateUserLogin, validateForgetPassword} = require('../utils/validator');
 const {generateToken} = require('../utils/generateToken');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const registerUser = async(req,res)=>{
     try{
@@ -95,7 +98,7 @@ const loginUser = async(req,res)=>{
         res.status(200).json({
             success:true,
             AccessToken:accessToken,
-            RefreshToken:refreshToken,
+            RefreshToken:hashedRefreshToken,
             message:"User logged in successfully"
         })
 
@@ -132,7 +135,7 @@ const forgetPassword = async(req,res)=>{
         await user.changePassword(newPassword);
         res.status(200).json({
             success:true,
-            message:`Password changed successfully ${user._id}`
+            message:`Password changed successfully`
         })
     }catch(error){
         logger.info(`Error occured while changing password ${error.message}`)
@@ -144,8 +147,10 @@ const forgetPassword = async(req,res)=>{
 }
 const generateNewAccessToken = async (req,res)=>{
     logger.info("Generate new access token endpoint hit");
+    console.log(req.cookies);
     try{
-        const refreshToken = req.cookie.refreshToken;
+        const refreshToken = req.cookies.refreshToken;
+        
         if(!refreshToken){
             logger.erro(`Refresh token not provided. Please Login again`);
             return res.status(401).json({
@@ -153,9 +158,8 @@ const generateNewAccessToken = async (req,res)=>{
                 message:"Refresh token not provided. Please Login again"
             })
         }
-        const hashedRefreshToken = crypto.Hash('sha256').update(refreshToken).digest('hex');
-
-        const storedRefreshToken = await RefreshToken.findOne({token:hashedRefreshToken});
+        
+        const storedRefreshToken = await RefreshToken.findOne({token: refreshToken});
         if(!storedRefreshToken){
             logger.error(`Refresh token not found. Please Login again`);
             return res.status(401).json({
@@ -189,10 +193,45 @@ const generateNewAccessToken = async (req,res)=>{
         })
     }
 }
+const logoutUser = async (req,res)=>{
+    logger.info("Logout user endpoint hit");
+    try{
+        const {refreshToken} = req.cookies;
+        if(!refreshToken){
+            logger.error("You are not logged in");
+            return res.status(404).json({
+                success:false,
+                message:"You are not logged in"
+            })
+        }
+        const storedRefreshToken = await RefreshToken.findOne({token: refreshToken});
+        if(!storedRefreshToken){
+            logger.error("Invalid refresh token");
+            return res.status(400).json({
+                success:false,
+                message:"Invalid refresh token"
+            })
+        }
+        await RefreshToken.findByIdAndDelete(storedRefreshToken._id);
+        res.cookie('refreshToken', '', { httpOnly: true, expires: new Date(0) });
+        res.status(200).json({
+            success:true,
+            message:"User logged out successfully"
+        })
+
+    }catch(error){
+        logger.error(`Error while logging out user ${error.message}`);
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
 
 module.exports = {
     registerUser,
     loginUser,
     forgetPassword,
-    generateNewAccessToken
+    generateNewAccessToken,
+    logoutUser
 }

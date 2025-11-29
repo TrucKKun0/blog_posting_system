@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const userRouter = require('./routers/UserRouter');
 const errorHandler = require('./middlewares/errorHandler');
 const connectToMongoDB = require('./config/mongooseConfig');
+const cookieParser = require('cookie-parser');
 
 
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ connectToMongoDB();
 app.use(express.json());
 app.use(configuration());
 app.use(helmet());
+app.use(cookieParser());
 
 // Request logging
 app.use((req, res, next) => {
