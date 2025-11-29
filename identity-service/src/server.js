@@ -9,6 +9,7 @@ const userRouter = require('./routers/UserRouter');
 const errorHandler = require('./middlewares/errorHandler');
 const connectToMongoDB = require('./config/mongooseConfig');
 const cookieParser = require('cookie-parser');
+const requestLogger = require('./middlewares/requestLogger');
 
 
 const PORT = process.env.PORT || 3000;
@@ -23,10 +24,7 @@ app.use(helmet());
 app.use(cookieParser());
 
 // Request logging
-app.use((req, res, next) => {
-    logger.info(`[Identity Service] ${req.method} ${req.url} from ${req.get['User-Agent']} ${req.ip}`);
-    next();
-});
+app.use(requestLogger);
 
 // Routes
 app.use('/api/auth', userRouter);
