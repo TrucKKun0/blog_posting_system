@@ -23,6 +23,7 @@ const configuration = () => {
         exposedHeaders: ['X-Total-Count', 'Content-Range'],
         credentials: true,
         preflightContinue: true,
+        credentials: true,
         optionsSuccessStatus: 204,
         maxAge: 3600
     });
