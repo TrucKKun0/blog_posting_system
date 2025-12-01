@@ -13,18 +13,20 @@ const {connectToRabbitMQ,consumeEvent} = require('./config/connectToRabbitMq');
 
 const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
 
-
-
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 connectToDB();
 app.use(express.json())
 app.use(express.urlencoded({extended:true}));
-app.use(configuration);
+app.use(configuration());
 app.use(helmet());
-app.use(errorHandler);
-app.use(ipBasedRateLimiter(5,1000*60*60));
+app.use(ipBasedRateLimiter(100,1000*60*60)); // Increased to 100 for testing
 
-app.use('/api/user',profileRouter);
+app.use((req,res,next)=>{
+    logger.info(`${req.method} ${req.ip} ${req.originalUrl}`);
+    next();
+})
+
+app.use('/api/profile',profileRouter);
 
 async function startServer(){
     await connectToRabbitMQ();
@@ -36,6 +38,8 @@ async function startServer(){
     })
 }
 startServer();
+app.use(errorHandler);
+
 
 
 process.on('unhandledRejection',(reason,promise)=>{

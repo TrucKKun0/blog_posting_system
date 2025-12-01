@@ -16,17 +16,18 @@ const {handleProfileDeleted} = require('./eventHandling/profileMediaHandle');
 const PORT = process.env.PORT || 3003;
 connectToDB()
 app.use(express.json());
+app.use(express.urlencoded({extended:true}));
 app.use(configuration);
 app.use(helmet());
 app.use(errorHandler);
 app.use(ipBasedRateLimit(5,1000*60*60));
 
-app.use('/api/medai',mediaRouter);
+app.use('/api/media',mediaRouter);
 
 async function startServer(){
     try{
         await connectToRabbitMQ();
-        //cosumeEvent for deleting media 
+        //cosumeEvent for deleting media
         await consumeEvent('profile.deleted',handleProfileDeleted);
         app.listen(PORT,()=>{
             logger.info(`Media Service is running on port ${PORT}`);

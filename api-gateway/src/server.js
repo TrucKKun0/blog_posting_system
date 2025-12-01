@@ -31,7 +31,7 @@ app.use(errorHandler);
 
 // Global request logging
 app.use((req, res, next) => {
-    logger.info(`[Gateway] ${req.method} ${req.originalUrl} from ${req.get['User-Agent']} ${req.ip}`);
+    logger.info(`[Gateway] ${req.method} ${req.originalUrl} from ${req.get['user-agent']} ${req.ip}`);
     next();
 });
 

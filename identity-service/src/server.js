@@ -14,7 +14,6 @@ const requestLogger = require('./middlewares/requestLogger');
 
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
 connectToMongoDB();
 
 // Middleware
@@ -29,7 +28,6 @@ app.use(requestLogger);
 // Routes
 app.use('/api/auth', userRouter);
 
-// Error handler (should be last)
 app.use(errorHandler);
 
 // Start server

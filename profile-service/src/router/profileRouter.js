@@ -6,6 +6,10 @@ const {authRequest} = require('../middlewares/authRequest');
 const logger = require('../utils/logger');
 
 
-router.post('/user',authRequest,updateUserProfile);
+router.post('/update',authRequest,updateUserProfile);
+router.get('/healthcheck',(req,res)=>{
+    logger.info('Healthcheck endpoint called');
+    res.status(200).json({status:'Profile Service is healthy'});
+});
 
 module.exports = router;

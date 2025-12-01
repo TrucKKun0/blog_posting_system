@@ -12,16 +12,17 @@ const validateToken = (req,res,next)=>{
             message:"Attempt to access without token"
         })
     }
-    jwt.verify(token,JWT_SECRET_KEY,(err,user)=>{
-        if(err){
-            logger.error("Invalid token");
-            return res.status(401).json({
-                success:false,
-                message:"Invalid token"
-            })
-        }
+    try {
+        // Use synchronous verify instead of callback
+        const user = jwt.verify(token, JWT_SECRET_KEY);
         req.user = user;
         next();
-    })
+    } catch (error) {
+        logger.error(`Invalid token: ${error.message}`);
+        return res.status(401).json({
+            success:false,
+            message:"Invalid token"
+        })
+    }
 }
 module.exports = {validateToken}

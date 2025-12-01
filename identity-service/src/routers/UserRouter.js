@@ -8,5 +8,8 @@ router.post('/login',loginUser);
 router.post('/forget-password',forgetPassword);
 router.post('/refresh-access-token',generateNewAccessToken);
 router.post('/logout',logoutUser);
+router.get('/health-check',(req,res)=>{
+    res.status(200).json({status:'User Service is healthy'});
+});
 
 module.exports = router;
