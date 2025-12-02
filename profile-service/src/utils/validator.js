@@ -5,7 +5,6 @@ const validateUpdateProfile = async (data)=>{
     const schema = joi.object({
         bio : joi.string().max(100),
         avatarId : joi.string(),
-        userId : joi.string().required()
     })
     return schema.validate(data);
 }

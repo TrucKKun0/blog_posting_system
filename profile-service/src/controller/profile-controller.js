@@ -6,7 +6,15 @@ const {publishEvent} = require('../config/connectToRabbitMq');
 const updateUserProfile = async(req,res)=>{
         logger.info('Update profile endpoint hit');
         try{
+
             const {userId} = req.user;
+            if(req.body === null || Object.keys(req.body).length ===0){
+                logger.error('No data provided for updating profile');
+                return  res.status(400).json({
+                    success:false,
+                    message:"No data provided for updating profile"
+                })
+            }
             const {error} = await validateUpdateProfile(req.body);
             if(error){
                 logger.error(`Validation Error while updating profile ${error.details[0].message}`);
@@ -17,15 +25,30 @@ const updateUserProfile = async(req,res)=>{
                 })
             }
             const {bio,avatarId} = req.body;
-            const userProfile = await UserProfile.create({
-                userId,
-                bio,
-                avatarId : avatarId || null
-            });
+
+            const profileToUpdate = await UserProfile.findOne({userId});
+            if(!profileToUpdate){
+                logger.error(`Profile not found for user ${userId}`);
+                return res.status(400).json({
+                    success:false,
+                    message:`Profile not found for user ${userId}`
+                });
+            }
+            const existingAvatarId = profileToUpdate.avatarId;
+            const existingBio = profileToUpdate.bio;
+
+            const userProfile = await UserProfile.findOneAndUpdate(
+                {userId},
+                {
+                bio : bio || existingBio,
+                avatarId : avatarId || existingAvatarId
+                },{new:true}
+            )
             logger.info(`Profile updated successfully ${userProfile.userId}`);
             res.status(200).json({
                 success:true,
-                message:`Profile updated successfully with userId ${userProfile.userId}`
+                message:`Profile updated successfully with userId ${userProfile.userId}`,
+                data:userProfile
             })
            
 
