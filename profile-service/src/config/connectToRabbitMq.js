@@ -36,7 +36,7 @@ async function consumeEvent(routingKey,callback){
     logger.info(`Event consumed from RabbitMQ with routing key: ${routingKey}`);
 }
 
-async function publishEvent(routingKey,callback){
+async function publishEvent(routingKey,message){
 if(!channel){
     await connectToRabbitMQ();
 }

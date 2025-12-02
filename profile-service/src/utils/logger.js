@@ -10,7 +10,7 @@ const logger = createLogger({
     level : 'info',
     format : combine(timestamp(), myFormat),
     transports : [
-        new transports.File({filename: "error.log", level: "errror"}),
+        new transports.File({filename: "error.log", level: "error"}),
         new transports.File({filename: "combined.log"}),
         new transports.File({filename: "info.log", level: "info"})
     ]
