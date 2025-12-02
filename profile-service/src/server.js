@@ -10,7 +10,7 @@ const errorHandler = require('./middlewares/errorHandlers');
 const ipBasedRateLimiter = require('./config/ipBasedRateLimit');
 const {connectToDB} = require('./config/connectDB');
 const {connectToRabbitMQ,consumeEvent} = require('./config/connectToRabbitMq');
-
+const requestLogger = require('./utils/requestLogger');
 const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
 
 const PORT = process.env.PORT || 3002;
@@ -19,12 +19,9 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}));
 app.use(configuration());
 app.use(helmet());
-app.use(ipBasedRateLimiter(100,1000*60*60)); // Increased to 100 for testing
+app.use(ipBasedRateLimiter(100,1000*60*60));
+app.use(requestLogger);
 
-app.use((req,res,next)=>{
-    logger.info(`${req.method} ${req.ip} ${req.originalUrl}`);
-    next();
-})
 
 app.use('/api/profile',profileRouter);
 
