@@ -10,18 +10,18 @@ const errorHandler = require('./middlewares/errorHandler');
 const mediaRouter = require('./routes/mediaRouters');
 const { connectToDB } = require('./config/connectDB');
 const {connectToRabbitMQ,consumeEvent} = require('./config/connectRabbitMq');
-
+const requestLogger = require('./utils/requestLogger');
 const {handleProfileDeleted} = require('./eventHandling/profileMediaHandle');
 
 const PORT = process.env.PORT || 3003;
 connectToDB()
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-app.use(configuration);
+app.use(configuration());
 app.use(helmet());
 app.use(errorHandler);
 app.use(ipBasedRateLimit(5,1000*60*60));
-
+app.use(requestLogger);
 app.use('/api/media',mediaRouter);
 
 async function startServer(){

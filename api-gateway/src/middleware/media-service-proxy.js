@@ -6,11 +6,12 @@ const MEDIA_SERVICE_URL = process.env.MEDIA_SERVICE_URL;
 
 const mediaServiceProxy = proxy(MEDIA_SERVICE_URL,{
     ...proxyOption,
-    timeout: 45000, // 45 second timeout
     proxyReqOptDecorator:(proxyReqOpt,srcReq)=>{
         // Forward Authorization header if present
         if(srcReq.headers['authorization']){
             proxyReqOpt.headers['Authorization']=srcReq.headers['authorization'];
+            proxyReqOpt.headers['Content-Type']='application/form-data';
+            proxyReqOpt.headers['x-user-id'] = srcReq.user.userId;
         }
         return proxyReqOpt;
     },

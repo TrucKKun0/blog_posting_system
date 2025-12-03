@@ -34,21 +34,15 @@ const updateUserProfile = async(req,res)=>{
                     message:`Profile not found for user ${userId}`
                 });
             }
-            const existingAvatarId = profileToUpdate.avatarId;
-            const existingBio = profileToUpdate.bio;
-
-            const userProfile = await UserProfile.findOneAndUpdate(
-                {userId},
-                {
-                bio : bio || existingBio,
-                avatarId : avatarId || existingAvatarId
-                },{new:true}
-            )
-            logger.info(`Profile updated successfully ${userProfile.userId}`);
+            const updateData ={};
+            if(bio !== undefined) updateData.bio = bio;
+            if(avatarId !== undefined) updateData.avatarId = avatarId;
+            const updatedProfile = await UserProfile.findOneAndUpdate({userId},{$set : updateData},{new:true});
+            logger.info(`Profile updated successfully ${updatedProfile.userId}`);
             res.status(200).json({
                 success:true,
-                message:`Profile updated successfully with userId ${userProfile.userId}`,
-                data:userProfile
+                message:`Profile updated successfully with userId ${updatedProfile.userId}`,
+                data:updatedProfile
             })
            
 
