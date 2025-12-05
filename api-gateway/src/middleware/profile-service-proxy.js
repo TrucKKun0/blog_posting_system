@@ -11,7 +11,10 @@ const profileServiceProxy = proxy(PROFILE_SERVICE_URL,{
         // Forward Authorization header if present
         if(srcReq.headers['authorization']){
             proxyOpt.headers["Authorization"] = srcReq.headers["authorization"];
-            proxyOpt.headers["Content-Type"] = "application/json";
+            // Preserve original Content-Type (don't force JSON for file uploads)
+            if(srcReq.headers['content-type']){
+                proxyOpt.headers["Content-Type"] = srcReq.headers['content-type'];
+            }
             proxyOpt.headers["x-user-id"] = srcReq.user.userId;
         }
         return proxyOpt;

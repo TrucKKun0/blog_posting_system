@@ -15,7 +15,12 @@ const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
 
 const PORT = process.env.PORT || 3002;
 connectToDB();
-app.use(express.json())
+app.use((req, res, next) => {
+    if (req.headers['Content-Type'] && req.headers['Content-Type'].includes('multipart/form-data')) {
+        return next();
+    }
+    express.json()(req, res, next);
+});
 app.use(express.urlencoded({extended:true}));
 app.use(configuration());
 app.use(helmet());
@@ -25,6 +30,7 @@ app.use(requestLogger);
 
 app.use('/api/profile',profileRouter);
 
+app.use(errorHandler);
 async function startServer(){
     await connectToRabbitMQ();
     //consumeEvent for creating profile
@@ -35,7 +41,6 @@ async function startServer(){
     })
 }
 startServer();
-app.use(errorHandler);
 
 
 

@@ -10,7 +10,7 @@ const mediaServiceProxy = proxy(MEDIA_SERVICE_URL,{
         // Forward Authorization header if present
         if(srcReq.headers['authorization']){
             proxyReqOpt.headers['Authorization']=srcReq.headers['authorization'];
-            proxyReqOpt.headers['Content-Type']='application/form-data';
+            proxyReqOpt.headers['Content-Type']=srcReq.headers['content-type'];
             proxyReqOpt.headers['x-user-id'] = srcReq.user.userId;
         }
         return proxyReqOpt;

@@ -13,37 +13,52 @@ const updateUserProfile = async(req,res)=>{
             const {userId} = req.user;
             let avatarId = null;
             let avatarUrl = null;
-            if(req.body === null || Object.keys(req.body).length ===0){
+
+            // Check if there's any data to update (either body or file)
+            const hasBodyData = req.body && Object.keys(req.body).length > 0;
+            const hasFile = req.file !== undefined;
+
+            if(!hasBodyData && !hasFile){
                 logger.error('No data provided for updating profile');
                 return  res.status(400).json({
                     success:false,
-                    message:"No data provided for updating profile"
+                    message:"No data provided for updating profile. Provide bio or avatar."
                 })
             }
-            const {error} = await validateUpdateProfile(req.body);
-            if(error){
-                logger.error(`Validation Error while updating profile ${error.details[0].message}`);
-                return res.status(400).json({
-                    success:false,
-                    message:"Validation Error while updating profile",
-                    error:error.details[0].message
-                })
+
+            // Validate body data only if present
+            if(hasBodyData){
+                const {error} = await validateUpdateProfile(req.body);
+                if(error){
+                    logger.error(`Validation Error while updating profile ${error.details[0].message}`);
+                    return res.status(400).json({
+                        success:false,
+                        message:"Validation Error while updating profile",
+                        error:error.details[0].message
+                    })
+                }
             }
+
+            logger.info(`Update request - hasFile: ${hasFile}, hasBodyData: ${hasBodyData}`);
+            
             if(req.file){
+                logger.info(`File upload detected: ${req.file.originalname}`);
                 const formData = new FormData();
                 formData.append('file' , fs.createReadStream(req.file.path),req.file.originalname);
                 const mediaResponse = await axios.post(
-                    'http://localhost:3003/api/media/upload',
+                'http://localhost:3003/api/media/upload',
                     formData,
                     {
                         headers:{
-                    'Content-Type' : 'multipart/form-data'
+                            ...formData.getHeaders(),
+                            'x-user-id': userId
                         }
                     }
                 )
                 if(mediaResponse.status === 200 && mediaResponse.data.success){
                     avatarId = mediaResponse.data.publicId;
                     avatarUrl = mediaResponse.data.url;
+                    logger.info(`File uploaded successfully. PublicId: ${avatarId}`);
                 }
             }
             const {bio} = req.body;

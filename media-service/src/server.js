@@ -15,7 +15,6 @@ const {handleProfileDeleted} = require('./eventHandling/profileMediaHandle');
 
 const PORT = process.env.PORT || 3003;
 connectToDB()
-app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(configuration());
 app.use(helmet());

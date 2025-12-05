@@ -10,7 +10,7 @@ const authRequest = (req,res,next)=>{
                 message:"Request without access token. Please Try again after login"
             })
         }
-        req.user  = userId;
+        req.user  = {userId};  
         next();
     }catch(error){
         logger.error(error.message);

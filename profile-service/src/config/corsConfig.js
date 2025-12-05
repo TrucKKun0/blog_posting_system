@@ -8,6 +8,7 @@ const configuration = ()=>{
                 'http://localhost:3000', // API Gateway
                 'http://localhost:3001', // Identity Service
                 'http://localhost:3002', // Profile Service (self)
+                'http://localhost:3003', // Media Service
                 
             ]
             if(!origin || allowedCors.indexOf(origin) !== -1){
