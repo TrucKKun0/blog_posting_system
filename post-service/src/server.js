@@ -9,9 +9,11 @@ const {corsConfig} = require('./config/corsConfig');
 const {ipBasedRateLimiter} = require('./middlewares/rateLimiterMiddleware');
 const PORT = process.env.PORT || 3004;
 const errorHandler = require('./middlewares/errorHandler');
+const { requestLogger } = require('./utils/requestLogger');
 
 app.use(express.json());
 app.use(corsConfig());
+app.use(requestLogger());
 app.use(ipBasedRateLimiter(50,15*60*1000)); // 50 requests per 15 minutes
 app.use('/api/posts',postRoutes);
 app.use(errorHandler);
