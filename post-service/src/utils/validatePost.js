@@ -3,15 +3,12 @@ const logger = require('../utils/logger');
 const joi = require('joi');
 
 const validatePost = async (data)=>{
-    const postSchema = joi.objecct({
+    const postSchema = joi.object({
         title : joi.string().min(3).max(100).required(),
-        slug : joi.string().min(3).max(100).required(),
-        contentId : joi.string().required(),
-        userId : joi.string().required(),
-        categories : joi.string().value(['Technology', 'Health', 'Lifestyle', 'Education', 'Entertainment']).required(),
+        categories : joi.string().valid('Technology', 'Health', 'Lifestyle', 'Education', 'Entertainment').required(),
         postImageUrl : joi.string(),
-        isPublished : joi.boolean().default(false),
-        publishedAt : joi.date().default(Date.now())
+        isPublished : joi.boolean().default(false).required(),
+        publishedAt : joi.date().default(Date.now()).required()
     })
     return postSchema.validate(data);
 }

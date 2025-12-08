@@ -8,7 +8,8 @@ const corsConfiguration = () => {
         "http://localhost:3000", // API Gateway
         "http://localhost:3004", // Post Service (self)
         "http://localhost:3001", // Identity Service
-        "http://localhost:3002", // Other services
+        "http://localhost:3002", // profile  services
+        "http://localhost:3003", // media Service
       ];
       if (!origin || allowedOrgins.indexOf(origin) !== -1) {
         callback(null, true);
@@ -26,3 +27,4 @@ const corsConfiguration = () => {
     
   });
 };
+module.exports = { corsConfiguration };
