@@ -2,7 +2,7 @@ require('dotenv').config();
 const logger = require('../utils/logger');
 const proxy = require('express-http-proxy');
 const POST_SERVICE_URL = process.env.POST_SERVICE_URL;
-const proxyOption = require('../utils/proxyOption');
+const proxyOption = require('./proxyOption');
 const postServiceProxy = proxy(POST_SERVICE_URL,{
     ...proxyOption,
     proxyReqOptDecorator:(proxyReqOpts,srcReq)=>{

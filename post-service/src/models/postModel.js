@@ -40,10 +40,10 @@ const PostSchema = mongoose.Schema(
       type: Date,
       default: Date.now(),
     },
-    categories: {
-      type: String,
-      enum: ["Technology", "Health", "Lifestyle", "Education", "Entertainment"],
-      required: true,
+    category:{
+      type : String,
+      enum: ['Technology', 'Health', 'Lifestyle', 'Education', 'Entertainment', 'Business', 'Travel', 'Food', 'Sports', 'Politics'],
+      required: true
     },
     postImageUrl: {
       type: String,

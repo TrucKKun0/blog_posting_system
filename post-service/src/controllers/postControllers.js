@@ -19,7 +19,8 @@ const createPost = async(req,res)=>{
             });
         }
 
-        const {title,categories,isPublished,publishedAt} = req.body;
+        const {title,category,isPublished,publishedAt} = req.body;
+        
 
         let postImageUrl = null;
         let postImagePublicId = null;
@@ -49,8 +50,8 @@ const createPost = async(req,res)=>{
         const newPost = await Post.create({
             authorId:userId,
             title,
-            categories,
             postImageUrl,
+            category,
             isPublished,
             publishedAt,
             postImagePublicId
