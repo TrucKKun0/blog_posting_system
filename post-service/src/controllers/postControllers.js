@@ -43,6 +43,7 @@ const createPost = async(req,res)=>{
                 postImagePublicId = mediaResponse.data.publicId;
                 postImageUrl = mediaResponse.data.url;
             }
+            
         }
 
         const newPost = await Post.create({
@@ -51,7 +52,8 @@ const createPost = async(req,res)=>{
             categories,
             postImageUrl,
             isPublished,
-            publishedAt
+            publishedAt,
+            postImagePublicId
         })
         logger.info(`Post created successfully with ID: ${newPost._id}`);
         res.status(201).json({

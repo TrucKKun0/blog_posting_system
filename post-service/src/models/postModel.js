@@ -48,6 +48,9 @@ const PostSchema = mongoose.Schema(
     postImageUrl: {
       type: String,
     },
+    postImagePublicId: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

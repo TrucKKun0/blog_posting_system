@@ -10,6 +10,7 @@ const {profileServiceProxy} = require('./middleware/profile-service-proxy');
 const {mediaServiceProxy} = require('./middleware/media-service-proxy');
 const errorHandler = require('./utils/errorHandler');
 const {validateToken} = require('./middleware/authMiddleware');
+const {postServiceProxy} = require('./middleware/post-service-proxy');
 
 // Environment validation
 const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 app.use('/v1/auth', identityServiceProxy);
 app.use('/v1/profile', validateToken, profileServiceProxy);
 app.use('/v1/media', validateToken, mediaServiceProxy);
+app.use('/v1/posts', validateToken, postServiceProxy);
 
 
 app.listen(PORT, () => {
@@ -46,4 +48,5 @@ app.listen(PORT, () => {
     logger.info(`Identity Service is running on port ${IDENTITY_SERVICE_URL}`);
     logger.info(`Profile Service is running on port ${PROFILE_SERVICE_URL}`);
     logger.info(`Media Service is running on port ${MEDIA_SERVICE_URL}`);
+    logger.info(`Post Service is running on port ${POST_SERVICE_URL}`);
 });
