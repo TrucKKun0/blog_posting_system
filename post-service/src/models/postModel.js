@@ -56,7 +56,6 @@ const PostSchema = mongoose.Schema(
 );
 
 PostSchema.index({ title: "text" });
-PostSchema.index({ slug: 1 }, { unique: true });
 PostSchema.index({ authorId: 1, publishedAt: -1 });
 
 PostSchema.pre("save", async function (next) {

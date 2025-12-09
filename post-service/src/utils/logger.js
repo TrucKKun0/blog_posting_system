@@ -4,14 +4,14 @@ const {transports, format} = winston;
 const {combine,timestamp,printf} = format;
 
 const myFormat = printf(({level,message,timestamp})=>{
-    return `[${level}] ${timestamp} : ${message}`;
+    return `[${timestamp}][${level}] : ${message}`;
 });
 
 const logger = winston.createLogger({
     level:'info',
     format: combine(
         timestamp(),
-        myFormat()
+        myFormat
     ),
     transports:[
         new transports.File({filename:'error.log',level:'error'}),
