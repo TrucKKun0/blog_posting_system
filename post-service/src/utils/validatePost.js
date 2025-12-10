@@ -2,14 +2,14 @@ const logger = require('../utils/logger');
 
 const joi = require('joi');
 
-const validatePost = async (data)=>{
-    const postSchema = joi.object({
-        title : joi.string().min(3).max(100).required(),
-        categories : joi.string().valid('Technology', 'Health', 'Lifestyle', 'Education', 'Entertainment').required(),
-        postImageUrl : joi.string(),
-        isPublished : joi.boolean().default(false).required(),
-        publishedAt : joi.date().default(Date.now()).required()
-    })
-    return postSchema.validate(data);
+const createPostSchema = joi.object({
+    title : joi.string().min(5).max(100),
+    category : joi.string().valid('Technology','Health','Lifestyle','Education','Entertainment'),
+    isPublished : joi.boolean(),
+})
+
+const validatePost = async (data, mode="create")=>{
+    return createPostSchema.prefs({presence : mode === "create" ? "required" : "optional"}).validate(data);
 }
+
 module.exports = {validatePost};
