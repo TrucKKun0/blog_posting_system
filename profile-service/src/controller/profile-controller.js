@@ -90,6 +90,44 @@ const updateUserProfile = async(req,res)=>{
             })
         }
 }
+const getProfile = async(req,res)=>{
+    logger.info('Get profile endpoint hit');
+    try{
+        const {userId} = req.user;
+        const profile = await UserProfile.findOne({userId});
+        if(!profile){
+            logger.error(`Profile not found for user ${userId}`);
+            return res.status(400).json({
+                success:false,
+                message:`Profile not found for user ${userId}`
+            })
+        }
+        if(userId === profile.userId){
+            logger.info("Profile fetched for the owner");
+            res.status(200).json({
+                success:true,
+                message:`You can edit your profile`,
+                data:profile
+            })
+        }
+        else{
+            logger.info("Profile fetched for other user");
+            res.status(200).json({
+                success:true,
+                message:`Profile fetched successfully for user ${userId}`,
+                data:profile
+            })
+        }
+
+    }
+    catch(error){
+        logger.error(`Error while fetching profile ${error.message}`);
+        res.status(500).json({
+            success:false,
+            message:"Internal Server Error"
+        })
+    }
+}
 
 const deleteAvater = async(req,res)=>{
     logger.info('Delete avatar endpoint hit');
