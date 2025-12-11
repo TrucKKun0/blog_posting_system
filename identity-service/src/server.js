@@ -11,7 +11,7 @@ const connectToMongoDB = require('./config/mongooseConfig');
 const cookieParser = require('cookie-parser');
 const requestLogger = require('./middlewares/requestLogger');
 
-
+const {connectToRabbitMQ} = require('./config/configRabbitMq');
 const PORT = process.env.PORT || 3000;
 
 connectToMongoDB();
@@ -31,6 +31,18 @@ app.use('/api/auth', userRouter);
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
-    logger.info(`Identity Service is running on port ${PORT}`);
-});
+async function startServer(){
+    try{
+        await connectToRabbitMQ();
+        app.listen(PORT,()=>{
+            logger.info(`Identity Service is running on port ${PORT}`);
+        })
+    }catch(error){
+        logger.error(`Error while starting server ${error.message}`);
+    }
+}
+startServer();
+
+process.on('unhandledRejection',(reason,promise)=>{
+    logger.error(`Unhandled Rejection at: ${promise} reason: ${reason}`);
+})

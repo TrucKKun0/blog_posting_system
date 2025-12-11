@@ -3,7 +3,7 @@ const RefreshToken = require('../models/RefreshModel');
 const logger = require('../utils/logger');
 const {validateUserRegistration, validateUserLogin, validateForgetPassword} = require('../utils/validator');
 const {generateToken} = require('../utils/generateToken');
-const crypto = require('crypto');
+const {publishEvent} = require('../config/configRabbitMq');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
@@ -20,7 +20,7 @@ const registerUser = async(req,res)=>{
             })
         }
         const {username,email,password} = req.body;
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = email.trim().toLowerCase();
         const existingUser = await User.findOne({email: normalizedEmail});
 
         if(existingUser){
@@ -37,6 +37,9 @@ const registerUser = async(req,res)=>{
             password
         })
         await user.save();
+        await publishEvent('user.registered',{
+            userId:user._id
+        });
         logger.info(`User registered successfully ${user._id}`);
         const {accessToken,hashedRefreshToken} = await generateToken(user);
         res.cookie('refreshToken',hashedRefreshToken,{
