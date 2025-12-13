@@ -94,7 +94,8 @@ const getProfile = async(req,res)=>{
     logger.info('Get profile endpoint hit');
     try{
         const {userId} = req.user;
-        const profile = await UserProfile.findOne({userId});
+        const paramUserId= req.params.userId;
+        const profile = await UserProfile.findOne({userId:paramUserId});
         if(!profile){
             logger.error(`Profile not found for user ${userId}`);
             return res.status(400).json({
@@ -141,6 +142,13 @@ const deleteAvater = async(req,res)=>{
                 message:`Profile not found for user ${userId}`
             })
         }
+        if(!avaterToDeleteProfile.avatarId){
+            logger.error(`Avatar not found for user ${userId}`);
+            return res.status(400).json({
+                success:false,
+                message:`Avatar not found for user ${userId}`
+            })
+        }
         await publishEvent('profile.deleted',{
             userId : userId,
             publicId : avaterToDeleteProfile.avatarId
@@ -163,4 +171,4 @@ const deleteAvater = async(req,res)=>{
     }
 }
 
-module.exports = {updateUserProfile,deleteAvater};
+module.exports = {updateUserProfile,deleteAvater,getProfile};
