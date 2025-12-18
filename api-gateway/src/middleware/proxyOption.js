@@ -6,7 +6,7 @@ const proxyOption = {
         return req.originalUrl.replace(/^\/v1/,"/api");
     },
     proxyErrorHandler: (err, res, next)=>{
-        logger.error("Proxy Error:",err.message);
+        logger.error("Proxy Error:",err);
         res.status(500).json({
             success:false,
             message:"Internal Server Error"
