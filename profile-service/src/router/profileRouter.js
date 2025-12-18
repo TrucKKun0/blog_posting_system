@@ -13,8 +13,9 @@ router.get('/healthcheck',(req,res)=>{
     logger.info('Healthcheck endpoint called');
     res.status(200).json({status:'Profile Service is healthy'});
 });
-router.get("/:userId",authRequest,getProfile);
+// Specific routes MUST come before wildcard routes
 router.get("/delete-avatar",authRequest,deleteAvater);
+router.get("/:userId",authRequest,getProfile);
 
 
 module.exports = router;

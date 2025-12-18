@@ -179,4 +179,4 @@ const deleteAvater = async(req,res)=>{
     }
 }
 
-module.exports = {updateUserProfile,deleteAvater,getProfile};
+module.exports = {updateUserProfile,getProfile,deleteAvater};
