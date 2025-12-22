@@ -32,9 +32,11 @@ const PostSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    isPublished: {
-      type: Boolean,
-      default: false,
+    status:{
+      type:String,
+      enum: ['draft', 'published'],
+      default: 'draft',
+      required: true
     },
     publishedAt: {
       type: Date,
