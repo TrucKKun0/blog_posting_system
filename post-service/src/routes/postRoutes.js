@@ -9,6 +9,7 @@ const upload = multer({storage: multer.memoryStorage(), limits: {fileSize: 5 * 1
 router.use(authRequest);
 
 router.post('/',upload.single('postImage'),createPost);
+router.post('/:_id/publish')
 router.post('/:_id/delete',deletePost);
 router.get('/',getAllPosts);
 router.get('/:slug',getOnePost);
