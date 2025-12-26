@@ -38,6 +38,17 @@ async function startServer(){
 
 startServer();
 
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    logger.info('SIGTERM signal received: closing HTTP server');
+    process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+    logger.info('SIGINT signal received: closing HTTP server');
+    process.exit(0);
+});
+
 process.on('unhandledRejection',(reason,promise)=>{
     logger.error(`Unhandled Rejection at: ${promise} reason: ${reason}`);
 })
