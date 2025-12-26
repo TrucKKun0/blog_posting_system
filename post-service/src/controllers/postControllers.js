@@ -7,16 +7,22 @@ const FormData = require("form-data");
 const { Content } = require("../models/contentModel");
 const DEFAULT_CACHE_EXPIRY = 5 * 60 * 1000;
 const { validatePost } = require("../utils/validatePost");
+const { publishEvent } = require("../config/rabbitMQConfig");
+const {v4 : uuidv4} = require('uuid');
+
 
 const createPost = async (req, res) => {
   logger.info("Create Post Controller");
+  const session = await mongoose.startSession();
+  session.startTranscation();
   try {
     const { userId } = req.user;
     const { title, category, status, content } = req.body;
-
+    const eventId = uuidv4();
     const mode = status === "published" ? "create" : "draft";
     const { error } = validatePost(req.body, mode);
     if (error) {
+      await session.abortTransaction();
       logger.error(`Validation Error at createPost:${error.message}`);
       return res.status(422).json({
         // Status code 422 is for Unprocessable Entity
@@ -52,18 +58,33 @@ const createPost = async (req, res) => {
     const createdContent = await Content.create({
       userId,
       content,
-    });
+    },{session});
     const createdPost = await Post.create({
       authorId: userId,
       title,
-      postImageUrl,
       category,
       contentId: createdContent._id,
       status,
       publishedAt: status === "published" ? Date.now() : null,
       postImagePublicId,
       postImageUrl,
-    });
+    },{session});
+
+    await session.commitTransaction();
+    session.endSession();
+
+
+    await publishEvent('post.published',{
+      eventId,
+      eventType : 'post.published',
+      postId : createdPost._id,
+      userId,
+      title,
+      slug : createdPost.slug,
+      status,
+      publishedAt : createdPost.publishedAt
+
+    })
     logger.info(`Post created successfully with ID: ${createdPost._id}`);
     res.status(201).json({
       success: true,

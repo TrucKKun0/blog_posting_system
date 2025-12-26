@@ -4,11 +4,10 @@ const UserProfile = require('../models/userProfile');
 const { validateUpdateProfile } = require('../utils/validator');
 const {publishEvent} = require('../config/connectToRabbitMq');
 const fs = require('fs');
-const path = require('path');
+
 const FormData = require('form-data');
 const axios = require('axios');
-const redis = require('../config/redisConfig');
-const DEFAULT_CACHE_EXPIRY = 5*60*1000;
+
 
 const updateUserProfile = async(req,res)=>{
         logger.info('Update profile endpoint hit');
@@ -98,19 +97,10 @@ const getProfile = async(req,res)=>{
     try{
         const {userId} = req.user;
         const paramUserId= req.params.userId;
-        const cachedKey = `profile:${paramUserId}`;
-        const cachedProfile = await redis.get(cachedKey);
+        
         const isOwner = userId === paramUserId;
-        if(cachedProfile){
-            console.log('Cache Hit');
-            logger.info(`Profile fetched for the user ${paramUserId}`);
-            return res.status(200).json({
-                success :true,
-                message:isOwner ? "You can edit your profile" : `Profile fetched successfully for user ${paramUserId}`,
-                data:JSON.parse(cachedProfile)
-            })
-        }
-        console.log('Cache Miss');
+        
+        
         const profile = await UserProfile.findOne({userId:paramUserId});
         if(!profile){
             logger.error(`Profile not found for user ${userId}`);
@@ -119,12 +109,17 @@ const getProfile = async(req,res)=>{
                 message:`Profile not found for user ${userId}`
             })
         }
-        const profileData = profile.toObject();
-        await redis.setex(cachedKey,DEFAULT_CACHE_EXPIRY,JSON.stringify(profileData));
+        const profileData = {
+            userId:profile.userId,
+            avatarId:profile.avatarId,
+            bio:profile.bio,
+            publishedPost:profile.publishedPost
+        }
         
         return res.status(200).json({
             success:true,
             message:isOwner ? "You can edit your profile" : `Profile fetched successfully for user ${paramUserId}`,
+            isOwner,
             data:profileData
         })
         

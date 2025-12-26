@@ -1,5 +1,23 @@
 const mongoose = require("mongoose");
 
+
+const PublishPostSchema = new mongoose.Schema({
+    postId : {
+        trype : String,
+        required : true
+    },
+    title : {
+        type: String
+    },
+    slug : {
+        type: String
+    },
+    publishedAt : {
+        type: Date
+    },
+    
+},{_id : false});
+
 const UserProfileSchema = mongoose.Schema({
     userId:{
         type:mongoose.Schema.ObjectId,
@@ -13,9 +31,12 @@ const UserProfileSchema = mongoose.Schema({
         type:String,
         default:"User hasnt updated bio"
     },
-    createdAt:{
-        type:Date,
-        default:Date.now
+    publishedPost : [
+        PublishPostSchema
+    ],
+    processedEvent : {
+        type: [String],
+        default:[]
     }
 },{timestamps:true});
 

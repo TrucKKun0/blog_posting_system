@@ -13,6 +13,7 @@ const {connectToRabbitMQ,consumeEvent} = require('./config/connectToRabbitMq');
 const requestLogger = require('./utils/requestLogger');
 const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
 const {handleUserRegister} = require('./eventHandling/userProfileRegister');
+const {handlePostCreated}  = require('./eventHandling/postCreatedHandle');
 
 const PORT = process.env.PORT || 3002;
 connectToDB();
@@ -36,6 +37,7 @@ async function startServer(){
     await connectToRabbitMQ();
     //consumeEvent for creating profile
     await consumeEvent('profile.created',handleProfileCreated);
+    await consumeEvent('post.published',handlePostCreated);
     await consumeEvent('user.registered',handleUserRegister);
     //listening to port
     app.listen(PORT,()=>{
