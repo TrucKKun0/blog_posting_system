@@ -19,7 +19,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(configuration());
 app.use(helmet());
 app.use(errorHandler);
-app.use(ipBasedRateLimit(5,1000*60*60));
+app.use(ipBasedRateLimit(100,1000*60*60));
 app.use(requestLogger);
 app.use('/api/media',mediaRouter);
 

@@ -3,8 +3,7 @@ const logger = require('../utils/logger');
 
 const contentSchema = mongoose.Schema({
     userId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
+        type:String,
         required:true
     },
     content:{

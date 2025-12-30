@@ -1,11 +1,10 @@
 const { v4: uuidv4 } = require('uuid');
 const logger = require("../utils/logger");
-const { Post } = require("../models/postModel");
+const Post = require("../models/postModel");
 const redis = require('../config/redisConfig');
-const fs = require("fs");
 const axios = require("axios");
 const FormData = require("form-data");
-const { Content } = require("../models/contentModel");
+const Content = require("../models/contentModel");
 const mongoose = require("mongoose");
 const DEFAULT_CACHE_EXPIRY = 5 * 60 * 1000;
 const { validatePost } = require("../utils/validatePost");
@@ -15,15 +14,29 @@ const { publishEvent } = require("../config/rabbitMQConfig");
 const createPost = async (req, res) => {
   logger.info("Create Post Controller");
   const session = await mongoose.startSession();
-  session.startTranscation();
+  session.startTransaction(); // ✅ Fixed typo: startTransaction (not startTranscation)
   try {
     const { userId } = req.user;
     const { title, category, status, content } = req.body;
+
+    logger.info(`Creating post - userId: ${userId}, title: ${title}, status: ${status}`);
+
+    if (!userId) {
+      await session.abortTransaction();
+      session.endSession();
+      logger.error('userId is missing from req.user');
+      return res.status(401).json({
+        success: false,
+        message: "User authentication failed - userId missing"
+      });
+    }
+
     const eventId = uuidv4();
     const mode = status === "published" ? "create" : "draft";
     const { error } = validatePost(req.body, mode);
     if (error) {
       await session.abortTransaction();
+      session.endSession();
       logger.error(`Validation Error at createPost:${error.message}`);
       return res.status(422).json({
         // Status code 422 is for Unprocessable Entity
@@ -36,9 +49,10 @@ const createPost = async (req, res) => {
     //uploads image to cloudinary if status is published and image is provided
     if (status === "published" && req.file) {
       const formData = new FormData();
+      
       formData.append(
-        file,
-        fs.createReadStream(req.file.path),
+        'file',
+        req.file.buffer,
         req.file.originalname
       );
       const mediaResponse = await axios.post(
@@ -56,11 +70,14 @@ const createPost = async (req, res) => {
         postImagePublicId = mediaResponse.data.publicId;
       }
     }
-    const createdContent = await Content.create({
+    // Create content with session (must pass array as first argument)
+    const [createdContent] = await Content.create([{
       userId,
       content,
-    },{session});
-    const createdPost = await Post.create({
+    }], { session });
+
+    // Create post with session (must pass array as first argument)
+    const [createdPost] = await Post.create([{
       authorId: userId,
       title,
       category,
@@ -69,7 +86,7 @@ const createPost = async (req, res) => {
       publishedAt: status === "published" ? Date.now() : null,
       postImagePublicId,
       postImageUrl,
-    },{session});
+    }], { session });
 
     await session.commitTransaction();
     session.endSession();
@@ -93,17 +110,15 @@ const createPost = async (req, res) => {
       data: createdPost,
     });
   } catch (error) {
-    logger.error(error.message);
+    await session.abortTransaction();
+    session.endSession();
+    logger.error(`Error in createPost: ${error.message}`);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
-  } finally {
-    //removes the image from the server if it is uploaded
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
   }
+  // No finally block needed - using memoryStorage (no temp files to clean up)
 };
 
 const publishPost = async (req, res) => {

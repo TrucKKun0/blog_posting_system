@@ -15,7 +15,6 @@ const PostSchema = mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
       unique: true,
       trim: true,
     },
@@ -60,9 +59,9 @@ const PostSchema = mongoose.Schema(
 PostSchema.index({ title: "text" });
 PostSchema.index({ authorId: 1, publishedAt: -1 });
 
-PostSchema.pre("save", async function (next) {
-  if (this.isModified("title")) {
-    this.baseSlug = slugify(this.title, {
+PostSchema.pre("save", async function () {
+  if (this.isModified("title") || !this.slug) {
+    const baseSlug = slugify(this.title, {
       replacement: "-", //replace spaces with hyphen
       lower: true, //convert to lower case
       strict: true, //removes special characters
@@ -74,13 +73,12 @@ PostSchema.pre("save", async function (next) {
     //check if slug already exists
     //this.constructor refers to the model
     // and finds with the current slug with existing ones if it found then it becomes true and enters the loop
-    while (await this.constructor.findOne({ slug })) {
+    while (await this.constructor.findOne({ slug, _id: { $ne: this._id } })) {
       slug = `${baseSlug}-${count}`;
       count++;
     }
     this.slug = slug;
   }
-  next();
 });
 
 module.exports = mongoose.model("Post", PostSchema);
