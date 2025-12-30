@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 
 const PublishPostSchema = new mongoose.Schema({
     postId : {
-        trype : String,
-        required : true
+        trype : String
+        
     },
     title : {
         type: String
@@ -20,9 +20,9 @@ const PublishPostSchema = new mongoose.Schema({
 
 const UserProfileSchema = mongoose.Schema({
     userId:{
-        type:mongoose.Schema.ObjectId,
-        ref:'User',
-        required:true
+        type:String,
+        required:true,
+        unique:true
     },
     avatarId:{
         type:String
