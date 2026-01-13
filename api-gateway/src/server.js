@@ -17,6 +17,7 @@ const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;
 const MEDIA_SERVICE_URL = process.env.MEDIA_SERVICE_URL;
 const POST_SERVICE_URL = process.env.POST_SERVICE_URL;
+const SOCIAL_SERVICE_URL = process.env.SOCIAL_SERVICE_URL;
 const PORT = process.env.PORT || 3000;
 
 if (!IDENTITY_SERVICE_URL || !PROFILE_SERVICE_URL) {
@@ -42,6 +43,7 @@ app.use('/v1/auth', identityServiceProxy);
 app.use('/v1/profile', validateToken, profileServiceProxy);
 app.use('/v1/media', validateToken, mediaServiceProxy);
 app.use('/v1/posts', validateToken, postServiceProxy);
+app.use('/v1/follow', validateToken, socialServiceProxy);
 
 
 app.listen(PORT, () => {
@@ -50,4 +52,5 @@ app.listen(PORT, () => {
     logger.info(`Profile Service is running on port ${PROFILE_SERVICE_URL}`);
     logger.info(`Media Service is running on port ${MEDIA_SERVICE_URL}`);
     logger.info(`Post Service is running on port ${POST_SERVICE_URL}`);
+    logger.info(`Social Service is running on port ${SOCIAL_SERVICE_URL}`);
 });

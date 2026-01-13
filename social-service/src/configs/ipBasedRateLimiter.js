@@ -17,4 +17,4 @@ const ipBasedRateLimiter = (maxRequest , time) =>{
         }
     });
 }
-module.exports = ipBasedRateLimiter;
+module.exports = {ipBasedRateLimiter};

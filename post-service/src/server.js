@@ -44,10 +44,7 @@ process.on('SIGTERM', async () => {
     process.exit(0);
 });
 
-process.on('SIGINT', async () => {
-    logger.info('SIGINT signal received: closing HTTP server');
-    process.exit(0);
-});
+
 
 process.on('unhandledRejection',(reason,promise)=>{
     logger.error(`Unhandled Rejection at: ${promise} reason: ${reason}`);
