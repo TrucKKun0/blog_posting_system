@@ -10,6 +10,7 @@ const {errorHandler} = require('../utils/errorHandler');
 const {requestLogger} = require('./utils/requestLogger');
 const helmet = require('helmet');
 const followRouter = require('./routers/followRouter');
+const {publishOutBoxEvent} = require('./utils/eventWorker');
 
 app.use(helmet());
 
@@ -32,6 +33,14 @@ function startServer (){
     });
 }
 startServer();
+
+if (process.env.NODE_ENV !== 'test'){
+    setInterval(()=>{
+        publishOutBoxEvent().catch((error)=>{
+            logger.error(`Error publishing OutBox events: ${error.message}`);
+        });
+    },5000);
+}
 
 process.on('unhandledRejection',(error)=>{
     logger.error(`Unhandled Rejection: ${error.message}`);

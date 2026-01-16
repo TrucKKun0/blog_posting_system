@@ -2,6 +2,7 @@ const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 const {publishEvent} = require('../config/connectRabbitMq');
 const Follow = require('../models/followModel');
+const OutBoxEvent = require("../models/outBoxModel")
 const followUser = async (req,res)=>{
     logger.info('User follow request received');
     try{
@@ -32,10 +33,11 @@ const followUser = async (req,res)=>{
                 message:"You already follow this user"
             });
         }
-        await publishEvent('user.followed',{
+
+        await OutBoxEvent.create({
             eventId,
-            occurredAt : new Date().now(),
-            data : {
+            eventType : 'user.followed',
+            payload : {
                 followerId,
                 followingId
             }
