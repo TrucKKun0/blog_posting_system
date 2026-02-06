@@ -14,6 +14,7 @@ const requestLogger = require('./utils/requestLogger');
 const {handleProfileCreated} = require('./eventHandling/profileCreatedMedia');
 const {handleUserRegister} = require('./eventHandling/userProfileRegister');
 const {handlePostCreated}  = require('./eventHandling/postCreatedHandle');
+const { handleUserFollowed } = require('./eventHandling/userSocialHandle');
 
 const PORT = process.env.PORT || 3002;
 connectToDB();
@@ -39,6 +40,7 @@ async function startServer(){
     await consumeEvent('profile.created',handleProfileCreated);
     await consumeEvent('post.published',handlePostCreated);
     await consumeEvent('user.registered',handleUserRegister);
+    await consumeEvent('user.followed',handleUserFollowed);
     //listening to port
     app.listen(PORT,()=>{
         logger.info(`Profile Service is running on port ${PORT}`);

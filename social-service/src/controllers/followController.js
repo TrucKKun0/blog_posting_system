@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const {publishEvent} = require('../config/connectRabbitMq');
 const Follow = require('../models/followModel');
 const OutBoxEvent = require("../models/outBoxModel")
+
 const followUser = async (req,res)=>{
     logger.info('User follow request received');
     try{
@@ -41,8 +42,8 @@ const followUser = async (req,res)=>{
                 followerId,
                 followingId
             }
-        })
-
+        });
+       
         logger.info(`User ${followerId} followed user ${followingId}`);
         res.status(200).json({
             success:true,
