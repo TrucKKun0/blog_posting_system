@@ -10,6 +10,10 @@ const OutBoxSchema = mongoose.Schema({
         type : String,
         required : true
     },
+        payload : {
+        type : Object,
+        required : true
+    },
     processedAt : {
         type : Date,
         default : Date.now()

@@ -14,7 +14,7 @@ const { publishEvent } = require("../config/rabbitMQConfig");
 const createPost = async (req, res) => {
   logger.info("Create Post Controller");
   const session = await mongoose.startSession();
-  session.startTransaction(); // ✅ Fixed typo: startTransaction (not startTranscation)
+  session.startTransaction(); 
   try {
     const { userId } = req.user;
     const { title, category, status, content } = req.body;
