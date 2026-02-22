@@ -10,13 +10,18 @@ const OutBoxSchema = mongoose.Schema({
         type : String,
         required : true
     },
-        payload : {
+    payload : {
         type : Object,
         required : true
     },
-    processedAt : {
+    occuredAt : {
         type : Date,
         default : Date.now()
+    },
+    status:{
+        type : String,
+        enum : ['PENDING','PROCESSED','FAILED'],
+        default : 'PENDING'
     }
 },{timestamps : true});
 
