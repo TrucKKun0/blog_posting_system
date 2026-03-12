@@ -10,7 +10,7 @@ const postComment = async(req,res)=>{
     const session = await mongoose.startSession();
     session.startTransaction();
     try{
-        const {postId} = req.params;
+        const {postId} = req.body;
         //Check whether post exits or not 
         const foundPost = await PostRefrence.findOne({postId}).session(session);
         //if post not found then abort the transaction and end the session
@@ -81,7 +81,7 @@ const replyToComment = async (req,res)=>{
     const session = await mongoose.startSession();
     session.startTransaction();
     try{
-        const {commentId} = req.params;
+        const {commentId} = req.body;
 
         const parentComment = await Comment.findOne({_id : commentId}).session(session);
         //check wheather or not a comment exits

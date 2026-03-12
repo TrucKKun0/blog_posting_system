@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(configuration());
 app.use(ipBasedRateLimiter(100,1000*60*60));
-app.use('/api/follow',followRouter);
+app.use('/api/social',followRouter);
 
 app.use(errorHandler);
 function startServer (){

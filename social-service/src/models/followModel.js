@@ -1,4 +1,4 @@
-const mongoose =  requre('mongoose');
+const mongoose =  require('mongoose');
 
 const followSchema = new mongoose.Schema({
    
