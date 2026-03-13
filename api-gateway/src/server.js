@@ -11,6 +11,9 @@ const {mediaServiceProxy} = require('./middleware/media-service-proxy');
 const errorHandler = require('./utils/errorHandler');
 const {validateToken} = require('./middleware/authMiddleware');
 const {postServiceProxy} = require('./middleware/post-service-proxy');
+const {socialServiceProxy} = require('./middleware/social-service-proxy');
+const {interactionServiceProxy} = require('./middleware/interatcion-service-proxy');
+const { use } = require('react');
 
 // Environment validation
 const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
@@ -18,6 +21,7 @@ const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;
 const MEDIA_SERVICE_URL = process.env.MEDIA_SERVICE_URL;
 const POST_SERVICE_URL = process.env.POST_SERVICE_URL;
 const SOCIAL_SERVICE_URL = process.env.SOCIAL_SERVICE_URL;
+const INTERACTION_SERVICE_URL = process.env.INTERACTION_SERVICE_URL;
 const PORT = process.env.PORT || 3000;
 
 if (!IDENTITY_SERVICE_URL || !PROFILE_SERVICE_URL) {
@@ -28,7 +32,7 @@ if (!IDENTITY_SERVICE_URL || !PROFILE_SERVICE_URL) {
 
 app.use(express.json());
 app.use(configuration());
-app.use(ipBasedRateLimiter(50, 1000 * 60 * 60)); // 10 requests per hour
+app.use(ipBasedRateLimiter(1000, 1000 * 60 * 60)); // 1000 requests per hour
 app.use(helmet());
 app.use(errorHandler);
 
@@ -44,6 +48,7 @@ app.use('/v1/profile', validateToken, profileServiceProxy);
 app.use('/v1/media', validateToken, mediaServiceProxy);
 app.use('/v1/posts', validateToken, postServiceProxy);
 app.use('/v1/follow', validateToken, socialServiceProxy);
+app.use('/v1/interactions', validateToken, interactionServiceProxy);
 
 
 app.listen(PORT, () => {
@@ -53,4 +58,5 @@ app.listen(PORT, () => {
     logger.info(`Media Service is running on port ${MEDIA_SERVICE_URL}`);
     logger.info(`Post Service is running on port ${POST_SERVICE_URL}`);
     logger.info(`Social Service is running on port ${SOCIAL_SERVICE_URL}`);
+    logger.info(`Interaction Service is running on port ${INTERACTION_SERVICE_URL}`);
 });
