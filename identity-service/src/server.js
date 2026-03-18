@@ -10,7 +10,7 @@ const errorHandler = require('./middlewares/errorHandler');
 const connectToMongoDB = require('./config/mongooseConfig');
 const cookieParser = require('cookie-parser');
 const requestLogger = require('./middlewares/requestLogger');
-
+const ipBasedRateLimiter = require('./utils/rateLimiter');
 const {connectToRabbitMQ} = require('./config/configRabbitMq');
 const PORT = process.env.PORT || 3000;
 
@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(configuration());
 app.use(helmet());
 app.use(cookieParser());
-
+app.use(ipBasedRateLimiter(100, 15 * 60 * 1000));
 // Request logging
 app.use(requestLogger);
 
