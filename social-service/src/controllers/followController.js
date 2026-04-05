@@ -37,7 +37,7 @@ const followUser = async (req,res)=>{
 
         await OutBoxEvent.create({
             eventId,
-            eventType : 'user.followed',
+            eventType : 'user.follow',
             payload : {
                 followerId,
                 followingId
@@ -80,7 +80,7 @@ const unFollowUser = async (req,res)=>{
             });
         }
         const deleteFollow = await Follow.deleteOne({followerId,followingId});
-        await publishEvent('user.unfollowed',{
+        await publishEvent('user.unfollow',{
             eventId,
             occurredAt : new Date.now(),
             data : {
