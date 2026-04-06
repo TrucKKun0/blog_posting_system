@@ -1,5 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const logger = require('../utils/logger');
+const logger = require('./logger');
 const ipBasedRateLimiter = (maxRequest , time)=>{
     return rateLimit({
         max: maxRequest, // Limit each IP to send  limited number of requests per windowMs
