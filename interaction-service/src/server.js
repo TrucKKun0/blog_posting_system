@@ -1,48 +1,69 @@
+require('dotenv').config();
 const express = require("express");
-const {corsConfig} = require("./config/corsConfig");
-const {connectDB} = require("./config/dbConfig");
+const { corsConfiguration} = require("./config/corsConfig");
+const {connectToMongoDB} = require("./config/mongoConfig");
 const router = require("./router/interactionRouter");
-const {rateLimiter} = require("./middleware/rateLimiter");
-const logger = require("./config/loggerConfig");
+const { ipBasedRateLimit} = require("./config/ipBaseRateLimit");
+const logger = require("./utils/logger");
 const helmet = require("helmet");
 const {connectToRabbitMQ} = require("./config/rabbitMqConfig");
-const {errorHandler} = require("./middleware/errorHandler");
-const PORT = process.env.PORT
+const {errorHandler} = require("./utils/errorHandling");
+const PORT = process.env.PORT || 3006;
 const {requestLogger} = require("./utils/requestLogger");
 const {publishOutBoxEvent} = require("./utils/eventWorker");
-connectDB();
 
 
 
-const app = express();
-app.use(requestLogger);
-app.use(express.json());
-app.use(helmet());
-app.use(corsConfig());
-app.use(rateLimiter(50,1000*60));
+async function startServer() {
+    try {
+        await connectToMongoDB();
+        await connectToRabbitMQ();
 
-app.use("/api/interactions",router);
-app.use(errorHandler);
-function startserver(){
-    app.listen(PORT,()=>{
-        connectToRabbitMQ();
-        logger.info(`Interaction Service is running on port ${PORT}`);
-    });
-}
-startserver();
-if (process.env.NODE_ENV !== 'test'){
-    setInterval(()=>{
-        publishOutBoxEvent().catch((error)=>{
-            logger.error(`Error publishing OutBox events: ${error.message}`);
+        const app = express();
+
+        app.use(express.json());
+        app.use(requestLogger);
+        app.use(helmet());
+        app.use(corsConfiguration());
+        app.use(ipBasedRateLimit(50, 1000 * 60));
+
+        app.use("/api/interactions", router);
+        app.use(errorHandler);
+
+        app.listen(PORT, () => {
+            logger.info(`Interaction Service running on port ${PORT}`);
         });
-    },5000);
+
+        if (process.env.NODE_ENV !== "test") {
+            let isProcessing = false;
+
+            setInterval(async () => {
+                if (isProcessing) return;
+                isProcessing = true;
+
+                try {
+                    await publishOutBoxEvent();
+                } catch (error) {
+                    logger.error(error.message);
+                } finally {
+                    isProcessing = false;
+                }
+            }, 5000);
+        }
+
+    } catch (error) {
+        logger.error(`Startup failed: ${error.message}`);
+        process.exit(1);
+    }
 }
-process.on('unhandledRejection',(error)=>{
-    logger.error(`Unhandled Rejection: ${error.message}`);
+
+startServer();
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error(`Unhandled Rejection: ${reason}`);
     process.exit(1);
 });
 
-process.on('uncaughtException',(reason,promise)=>{
-    logger.error(`Uncaught Exception: ${reason} at: ${promise}`);
+process.on('uncaughtException', (error) => {
+    logger.error(`Uncaught Exception: ${error.message}`);
     process.exit(1);
 });

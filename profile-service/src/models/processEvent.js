@@ -12,4 +12,4 @@ const processEventSchema = new mongoose.Schema({
     }
 },{timestamps : true});
 
-module.exports = mongoose.model('ProcessedEvent, processeEventSchema');
+module.exports = mongoose.model('ProcessedEvent', processEventSchema);

@@ -1,4 +1,4 @@
-const poxyOptions =require('./proxyOptions');
+const proxyOption =require('./proxyOption');
 const proxy = require('express-http-proxy');
 const logger = require('../utils/logger');
 const FEED_SERVICE_URL = process.env.FEED_SERVICE_URL;

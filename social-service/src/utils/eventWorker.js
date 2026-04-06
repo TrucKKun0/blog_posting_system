@@ -1,5 +1,5 @@
 const OutBoxEvent = require("../models/outBoxModel");
-const { publishEvent } = require("../config/connectRabbitMq");
+const { publishEvent } = require("../configs/configRabbitMQ");
 const publishOutBoxEvent  =async ()=>{
     const events = await OutBoxEvent.find({status : 'PENDING'}).limit(10).lean();
 

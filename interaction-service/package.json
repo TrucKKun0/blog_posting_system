@@ -1,7 +1,7 @@
 {
   "name": "interaction-service",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,12 +12,13 @@
   "dependencies": {
     "amqplib": "^0.10.9",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "joi": "^18.0.2",
     "mongoose": "^9.2.1",
-    "uuid": "^13.0.0",
+    "uuid": "^8.3.2",
     "winston": "^3.19.0"
   }
 }

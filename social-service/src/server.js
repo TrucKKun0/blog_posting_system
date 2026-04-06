@@ -1,12 +1,13 @@
+require('dotenv').config();
 const express = require('express');
-const logger = require('../utils/logger');
+const logger = require('./utils/logger');
 const {ipBasedRateLimiter} = require('./configs/ipBasedRateLimiter');
 const {configuration} = require('./configs/corsConfig');
 const {connectToMongoDB} = require('./configs/connectTODB');
-const {PORT} = process.env || 3005;
+const PORT = process.env.PORT || 3005;
 const app = express();
 const {connectToRabbitMQ} = require('./configs/configRabbitMQ');
-const {errorHandler} = require('../utils/errorHandler');
+const {errorHandler} = require('./utils/errorHandler');
 const {requestLogger} = require('./utils/requestLogger');
 const helmet = require('helmet');
 const followRouter = require('./routers/followRouter');

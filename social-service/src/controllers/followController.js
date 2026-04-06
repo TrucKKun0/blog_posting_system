@@ -1,6 +1,6 @@
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
-const {publishEvent} = require('../config/connectRabbitMq');
+const {publishEvent} = require('../configs/configRabbitMQ');
 const Follow = require('../models/followModel');
 const OutBoxEvent = require("../models/outBoxModel")
 
