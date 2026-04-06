@@ -13,7 +13,8 @@ const {validateToken} = require('./middleware/authMiddleware');
 const {postServiceProxy} = require('./middleware/post-service-proxy');
 const {socialServiceProxy} = require('./middleware/social-service-proxy');
 const {interactionServiceProxy} = require('./middleware/interatcion-service-proxy');
-const { use } = require('react');
+const {feedServiceProxy} = require('./middleware/feed-service-proxy');
+const {optionAuthMiddleware} = require('./middleware/optionalMiddleware');
 
 // Environment validation
 const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
@@ -22,6 +23,7 @@ const MEDIA_SERVICE_URL = process.env.MEDIA_SERVICE_URL;
 const POST_SERVICE_URL = process.env.POST_SERVICE_URL;
 const SOCIAL_SERVICE_URL = process.env.SOCIAL_SERVICE_URL;
 const INTERACTION_SERVICE_URL = process.env.INTERACTION_SERVICE_URL;
+const FEED_SERVICE_URL = process.env.FEED_SERVICE_URL;
 const PORT = process.env.PORT || 3000;
 
 if (!IDENTITY_SERVICE_URL || !PROFILE_SERVICE_URL) {
@@ -49,6 +51,8 @@ app.use('/v1/media', validateToken, mediaServiceProxy);
 app.use('/v1/posts', validateToken, postServiceProxy);
 app.use('/v1/follow', validateToken, socialServiceProxy);
 app.use('/v1/interactions', validateToken, interactionServiceProxy);
+app.use('/v1/feed', optionAuthMiddleware, feedServiceProxy);
+
 
 
 app.listen(PORT, () => {
@@ -59,4 +63,5 @@ app.listen(PORT, () => {
     logger.info(`Post Service is running on port ${POST_SERVICE_URL}`);
     logger.info(`Social Service is running on port ${SOCIAL_SERVICE_URL}`);
     logger.info(`Interaction Service is running on port ${INTERACTION_SERVICE_URL}`);
+    logger.info(`Feed Service is running on port ${FEED_SERVICE_URL}`);
 });
