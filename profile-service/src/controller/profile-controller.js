@@ -13,8 +13,6 @@ const updateUserProfile = async(req,res)=>{
         logger.info('Update profile endpoint hit');
         try{
             const {userId} = req.user;
-            let avatarId = null;
-            let avatarUrl = null;
 
             // Check if there's any data to update (either body or file)
             const hasBodyData = req.body && Object.keys(req.body).length > 0;
@@ -42,7 +40,16 @@ const updateUserProfile = async(req,res)=>{
             }
 
             logger.info(`Update request - hasFile: ${hasFile}, hasBodyData: ${hasBodyData}`);
-            
+
+            const updateData = {};
+            const {bio} = req.body;
+
+            // Only add bio to update if provided
+            if(bio !== undefined) {
+                updateData.bio = bio;
+            }
+
+            // Only update avatar if file was uploaded
             if(req.file){
                 logger.info(`File upload detected: ${req.file.originalname}`);
                 const formData = new FormData();
@@ -58,16 +65,12 @@ const updateUserProfile = async(req,res)=>{
                     }
                 )
                 if(mediaResponse.status === 200 && mediaResponse.data.success){
-                    avatarId = mediaResponse.data.publicId;
-                    avatarUrl = mediaResponse.data.url;
-                    logger.info(`File uploaded successfully. PublicId: ${avatarId}`);
+                    updateData.avatarId = mediaResponse.data.publicId;
+                    updateData.avatarUrl = mediaResponse.data.url;
+                    logger.info(`File uploaded successfully. PublicId: ${updateData.avatarId}`);
                 }
             }
-            const {bio} = req.body;
 
-            const updateData ={};
-            if(bio !== undefined) updateData.bio = bio;
-            if(avatarId !== undefined) updateData.avatarId = avatarId;
             const updatedProfile = await UserProfile.findOneAndUpdate({userId},{$set : updateData},{new:true});
             if(!updatedProfile){
                 logger.error(`Profile not found for user ${userId}`);
