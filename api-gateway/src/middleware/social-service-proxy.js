@@ -7,15 +7,19 @@ const socialServiceProxy = proxy(SOCIAL_SERVICE_URL, {
     ...proxyOption,
     timeout: 30000, // 30 second timeout
     proxyReqOptDecorator: (proxyReqOpt, srcReq) => {
-        // Forward Authorization header if present
+        // Forward Authorization header and add x-user-id
         if (srcReq.headers['authorization']) {
             proxyReqOpt.headers['Authorization'] = srcReq.headers['authorization'];
+        }
+        // Add x-user-id from validated token
+        if (srcReq.user && srcReq.user.userId) {
+            proxyReqOpt.headers['x-user-id'] = srcReq.user.userId;
         }
         return proxyReqOpt;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
         // Log proxy response
-        logger.info(`Proxied to identity service: ${userReq.method} ${userReq.url} - Status: ${proxyRes.statusCode}`);
+        logger.info(`Proxied to social service: ${userReq.method} ${userReq.url} - Status: ${proxyRes.statusCode}`);
         return proxyResData;
     }
 });

@@ -18,4 +18,5 @@ router.get("/delete-avatar",authRequest,deleteAvater);
 router.get("/:userId",authRequest,getProfile);
 
 
+
 module.exports = router;

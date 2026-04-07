@@ -116,7 +116,9 @@ const getProfile = async(req,res)=>{
             userId:profile.userId,
             avatarId:profile.avatarId,
             bio:profile.bio,
-            publishedPost:profile.publishedPost
+            publishedPost:profile.publishedPost,
+            followerCount:profile.followerCount,
+            followingCount:profile.followingCount
         }
         
         return res.status(200).json({

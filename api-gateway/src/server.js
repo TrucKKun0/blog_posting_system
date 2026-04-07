@@ -49,7 +49,7 @@ app.use('/v1/auth', identityServiceProxy);
 app.use('/v1/profile', validateToken, profileServiceProxy);
 app.use('/v1/media', validateToken, mediaServiceProxy);
 app.use('/v1/posts', validateToken, postServiceProxy);
-app.use('/v1/follow', validateToken, socialServiceProxy);
+app.use('/v1/social', validateToken, socialServiceProxy);
 app.use('/v1/interactions', validateToken, interactionServiceProxy);
 app.use('/v1/feed', optionAuthMiddleware, feedServiceProxy);
 

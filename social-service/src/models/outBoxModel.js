@@ -19,9 +19,9 @@ const OutBoxEventSchema = new mongoose.Schema({
         enum : ['PENDING','PROCESSED','FAILED'],
         default : 'PENDING'
     },
-    occuredAt : {
+    occurredAt : {
         type : Date,
-        required : true
+        default : Date.now
     }
 },{ timestamps : true });
 

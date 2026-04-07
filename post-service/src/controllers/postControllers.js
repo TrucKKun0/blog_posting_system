@@ -384,6 +384,7 @@ const deletePost = async (req, res) => {
     await publishEvent("post.deleted", {
       userId: userId,
       publicId: postToDelete.postImagePublicId,
+      postId : postToDelete._id
     });
     await Post.findByIdAndDelete(postId);
     logger.info(`Post deleted successfully with ID: ${postId}`);

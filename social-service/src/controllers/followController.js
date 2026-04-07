@@ -1,17 +1,20 @@
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
-const {publishEvent} = require('../configs/configRabbitMQ');
 const Follow = require('../models/followModel');
-const OutBoxEvent = require("../models/outBoxModel")
+const OutBoxEvent = require("../models/outBoxModel");
+const mongoose = require('mongoose');
 
 const followUser = async (req,res)=>{
     logger.info('User follow request received');
     try{
         const eventId = uuidv4();
-        const followerId = req.user.userId;
-        const followingId = req.params.userId;
+        const followerId = new mongoose.Types.ObjectId(req.user.userId);
+        const followingId = new mongoose.Types.ObjectId(req.params.userId);
+
+        logger.info(`Follow request: ${followerId} wants to follow ${followingId}`);
+
         //check if user is trying to follow themselves
-        if(followerId.toString() === followingId.toString()){
+        if(followerId.equals(followingId)){
             logger.error(`User ${followerId} cannot follow themselves`);
             return res.status(400).json({
                 success:false,
@@ -39,8 +42,8 @@ const followUser = async (req,res)=>{
             eventId,
             eventType : 'user.follow',
             payload : {
-                followerId,
-                followingId
+                followerId: followerId.toString(),
+                followingId: followingId.toString()
             }
         });
        
@@ -49,7 +52,6 @@ const followUser = async (req,res)=>{
             success:true,
             message:"User followed successfully"
         });
-
 
     }catch(error){
         logger.error(`Error following user: ${error.message}`);
@@ -60,10 +62,11 @@ const unFollowUser = async (req,res)=>{
     logger.info('User unfollow request received');
     try{
         const eventId = uuidv4();
-        const followerId = req.user.userId;
-        const followingId = req.params.userId;
+        const followerId = new mongoose.Types.ObjectId(req.user.userId);
+        const followingId = new mongoose.Types.ObjectId(req.params.userId);
+
         //check if user is trying to unfollow themselves
-        if(followerId.toString() === followingId.toString()){
+        if(followerId.equals(followingId)){
             logger.error(`User ${followerId} cannot unfollow themselves`);
             return res.status(400).json({
                 success:false,
@@ -79,15 +82,17 @@ const unFollowUser = async (req,res)=>{
                 message:"You have not followed this user"
             });
         }
-        const deleteFollow = await Follow.deleteOne({followerId,followingId});
-        await publishEvent('user.unfollow',{
+        await Follow.deleteOne({followerId,followingId});
+
+        // Use OutBoxEvent for consistency
+        await OutBoxEvent.create({
             eventId,
-            occurredAt : new Date.now(),
-            data : {
-                followerId,
-                followingId
+            eventType : 'user.unfollow',
+            payload : {
+                followerId: followerId.toString(),
+                followingId: followingId.toString()
             }
-        })
+        });
         logger.info(`User ${followerId} unfollowed user ${followingId}`);
         res.status(200).json({
             success:true,
