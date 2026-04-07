@@ -336,17 +336,7 @@ const getOnePost = async (req, res) => {
   logger.info("Get One Post Controller");
   try {
     const postSlug = req.params.slug;
-    const cacheKey = `post:${postSlug}`; 
-    const cachedPost = await redis.get(cacheKey);
-    //check if the cache exists
-    if(cachedPost){
-      logger.info(`Responding from cache `);
-      return res.status(200).json({
-        success: true,
-        message: "Post fetched successfully from cache",
-        data: JSON.parse(cachedPost),
-      });
-    }
+    
 
     const post = await Post.findOne({ slug: postSlug });
     if (!post) {
@@ -356,7 +346,6 @@ const getOnePost = async (req, res) => {
         message: "Post not found",
       });
     }
-    await redis.setex(cacheKey,DEFAULT_CACHE_EXPIRY,JSON.stringify(post));
     res.status(200).json({
       success: true,
       message: "Post fetched successfully",
