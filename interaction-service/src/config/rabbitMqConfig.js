@@ -16,20 +16,21 @@
             process.exit(1);
         }
     }
-    const consumeEvent = async(callback)=>{
+    const consumeEvent = async(routingKey, callback)=>{
         if(!channel){
             await connectToRabbitMQ();
         }
         await channel.assertQueue(process.env.QUEUE_NAME,{durable : true});
-        await channel.bindQueue(process.env.QUEUE_NAME,process.env.EXCHANGE_NAME,"post.*");
+        await channel.bindQueue(process.env.QUEUE_NAME,process.env.EXCHANGE_NAME,routingKey);
         channel.consume(process.env.QUEUE_NAME,(msg)=>{
             if (msg !== null){
                 const content = JSON.parse(msg.content.toString());
+                logger.info(`Received event: ${routingKey} - ${JSON.stringify(content)}`);
                 callback(content);
                 channel.ack(msg);
             }
         },{noAck : false});
-        logger.info(`Event consumed from RabbitMQ with queue name : ${process.env.QUEUE_NAME}`);
+        logger.info(`Consuming events with routing key: ${routingKey}`);
 
     }
 

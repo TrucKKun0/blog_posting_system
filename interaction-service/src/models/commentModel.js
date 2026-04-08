@@ -18,8 +18,8 @@ const commentSchema = mongoose.Schema({
         index : true
     },
     content : {
-        type :String,
-        require : true
+        type : String,
+        required : true
     },
     likeCount : {
         type : Number,
@@ -31,8 +31,16 @@ const commentSchema = mongoose.Schema({
     },
     parentCommentId : {
         type : mongoose.Schema.Types.ObjectId,
-        defaul : null,
+        default : null,
         index : true
+    },
+    isDeleted:{
+        type : Boolean,
+        default : false
+    },
+    deletedAt : {
+        type : Date,
+        default : null
     }
 
 },{timestamps : true});

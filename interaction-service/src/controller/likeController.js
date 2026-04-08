@@ -6,6 +6,7 @@ const Comment = require("../models/commentModel");
 const mongoose = require("mongoose");
 const {v4 : uuidv4} = require("uuid");
 const OutBox = require("../models/OutBoxModel");
+
 const createLike = async (req,res)=>{
     logger.info("Like creation request received");
     const session = await mongoose.startSession();
@@ -24,10 +25,10 @@ const createLike = async (req,res)=>{
         }
         //Check if the target exists (for posts). If target type is post then check whether post exists or not.
         // If not then abort the transaction and end the session and return 404 not found response
-        if(targetType === "POST"){
+        if(targetType === "post"){
            const foundPost = await PostRefrence.findOne({postId : targetId}).session(session);
            if(!foundPost){
-            session.abortTransaction();
+            await session.abortTransaction();
             session.endSession();
                logger.error("Post not found");
                return res.status(404).json({
@@ -56,7 +57,17 @@ const createLike = async (req,res)=>{
         if(existingLike){
             await Like.deleteOne({_id : existingLike._id},{session});
             await InteractionCount.updateOne({targetId,targetType},{$inc : {likeCount : -1}},{upsert : true,session});
-            session.commitTransaction();
+            await OutBox.create([{
+                eventId,
+                eventType : "like.deleted",
+                payload : {
+                    likeId : existingLike._id,
+                    userId,
+                    targetId,
+                    targetType
+                }
+            }],{session});
+            await session.commitTransaction();
             session.endSession();
             logger.info("Like removed successfully");
             return res.status(200).json({
@@ -65,7 +76,9 @@ const createLike = async (req,res)=>{
             });
         }
         // Create a new Like
-        const newLike = await Like.create([{userId,targetId,targetType}],{session});
+        const newLikeArray = await Like.create([{userId,targetId,targetType}],{session});
+        const newLike = newLikeArray[0];  // Extract first element from array
+
         //update like count in interaction count collection
         await InteractionCount.updateOne({targetId,targetType},{$inc : {likeCount : 1}},{upsert : true,session});
 

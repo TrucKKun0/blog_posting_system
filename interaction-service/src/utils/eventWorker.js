@@ -1,9 +1,10 @@
 const OutBoxEvent = require("../models/OutBoxModel");
+const logger = require("./logger");
 
 const {publishEvent} = require("../config/rabbitMqConfig");
 
 const publishOutBoxEvent = async()=>{
-    const events = await OutBoxEvent.find({status : "PENDING"}).limit(10).lean();
+    const events = await OutBoxEvent.find({status : "PENDING"}).limit(10);
     for(const event of events){
         try{
             await publishEvent(event.eventType,{

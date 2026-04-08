@@ -2,7 +2,7 @@ const cors = require("cors");
 
 const corsConfiguration = ()=>{
     return cors({
-        origin : (erigin , callback)=>{
+        origin : (origin , callback)=>{
             const allowedCors = [
                 'http://localhost:3000', // API Gateway
                 'http://localhost:3001', // Identity Service
@@ -11,7 +11,7 @@ const corsConfiguration = ()=>{
                 'http://localhost:3004', // Post Service
                 'http://localhost:3005'  // Social Service
             ]
-            if(!orgin || allowedCors.indexOf(origin) ===-1){
+            if(!origin || allowedCors.indexOf(origin) ===-1){
                 callback(null,true);
             }else{
                 logger.error(`CORS error: Origin ${origin} not allowed`);

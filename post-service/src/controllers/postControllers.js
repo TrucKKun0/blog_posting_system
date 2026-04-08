@@ -6,7 +6,7 @@ const axios = require("axios");
 const FormData = require("form-data");
 const Content = require("../models/contentModel");
 const mongoose = require("mongoose");
-const DEFAULT_CACHE_EXPIRY = 5 * 60 * 1000;
+
 const { validatePost } = require("../utils/validatePost");
 const { publishEvent } = require("../config/rabbitMQConfig");
 

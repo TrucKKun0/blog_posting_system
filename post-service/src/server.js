@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const {connectToDB} = require('./config/connectToDB');
-const {connectToRabbitMQ} = require('./config/rabbitMQConfig');
+const {connectToRabbitMQ, consumeEvent} = require('./config/rabbitMQConfig');
 const postRoutes = require('./routes/postRoutes');
 const logger = require('./utils/logger');
 const app = express();
@@ -10,6 +10,7 @@ const {ipBasedRateLimiter} = require('./config/ipBasedRateLimiter');
 const PORT = process.env.PORT || 3004;
 const {errorHandler} = require('./utils/errorHandler');
 const { requestLogger } = require('./utils/requestLogger');
+const { handleCommentEvent,handleLikeEvent } = require('./eventHandling/interactionEventHandle');
 
 connectToDB();
 app.use((req,res,next)=>{
@@ -28,6 +29,10 @@ app.use(errorHandler);
 async function startServer(){
     try{
         await connectToRabbitMQ();
+        await consumeEvent("comment.created",handleCommentEvent);
+        await consumeEvent("comment.deleted",handleCommentEvent);
+        await consumeEvent("like.created",handleLikeEvent);
+        await consumeEvent("like.deleted",handleLikeEvent);
         app.listen(PORT,()=>{
             logger.info(`Post Service is running on port ${PORT}`);
         })

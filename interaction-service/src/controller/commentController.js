@@ -205,8 +205,111 @@ const replyToComment = async (req, res) => {
     }
 };
 
+const deleteComment = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const { commentId } = req.body;
+        const { userId } = req.user;
+
+        if (!commentId) {
+            logger.error("commentId is required for deletion");
+            return res.status(400).json({
+                success: false,
+                message: "commentId is required"
+            });
+           
+        }
+
+        const comment = await Comment.findById(commentId).session(session);
+
+        if (!comment) {
+            session.abortTransaction();
+            session.endSession();
+            logger.error(`Comment not found with id ${commentId}`);
+            return res.status(404).json({
+                success: false,
+                message: "Comment not found"
+            });
+        }
+
+        if (comment.userId.toString() !== userId) {
+            session.abortTransaction();
+            session.endSession();
+            logger.error(`Unauthorized delete attempt by user ${userId} on comment ${commentId}`);
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to delete this comment"
+            });
+        }
+
+        if (comment.isDeleted) {
+            session.abortTransaction();
+            session.endSession();
+            logger.error(`Comment is already deleted with id ${commentId}`);
+            return res.status(400).json({
+                success: false,
+                message: "Comment is already deleted"
+            });
+        }
+
+        // Soft delete
+        comment.isDeleted = true;
+        comment.content = "This comment has been deleted";
+        comment.deletedAt = new Date();
+
+        await comment.save({ session });
+
+        // Update post comment count
+        await InteractionCount.updateOne(
+            { targetId: comment.targetId, targetType: comment.targetType },
+            { $inc: { commentCount: -1 } },
+            { session }
+        );
+
+        // Update parent reply count
+        if (comment.parentCommentId) {
+            await Comment.updateOne(
+                { _id: comment.parentCommentId },
+                { $inc: { replyCount: -1 } },
+                { session }
+            );
+        }
+
+        // Outbox event
+        await OutBox.create([{
+            eventId: uuidv4(),
+            eventType: "comment.deleted",
+            payload: {
+                commentId: comment._id,
+                userId: comment.userId,
+                targetId: comment.targetId,
+                targetType: comment.targetType
+            }
+        }], { session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({
+            success: true,
+            message: "Comment deleted successfully"
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        logger.error(`Error while deleting comment: ${error.message}`);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
 
 module.exports = {
     postComment,
-    replyToComment
+    replyToComment,
+    deleteComment
 };

@@ -11,24 +11,31 @@ const {errorHandler} = require("./utils/errorHandling");
 const PORT = process.env.PORT || 3006;
 const {requestLogger} = require("./utils/requestLogger");
 const {publishOutBoxEvent} = require("./utils/eventWorker");
+const {handlePostCreation,handlePostDeletion} = require("./eventHandling/postEventHandeling");
+const {consumeEvent} = require("./config/rabbitMqConfig");
 
 
 
 async function startServer() {
     try {
-        await connectToMongoDB();
-        await connectToRabbitMQ();
-
+        
         const app = express();
-
+        
         app.use(express.json());
         app.use(requestLogger);
         app.use(helmet());
         app.use(corsConfiguration());
         app.use(ipBasedRateLimit(50, 1000 * 60));
-
+        
         app.use("/api/interactions", router);
         app.use(errorHandler);
+        await connectToMongoDB();
+        await connectToRabbitMQ();
+        
+        // Register event consumers
+        await consumeEvent('post.published', handlePostCreation);
+        await consumeEvent('post.deleted', handlePostDeletion);
+        logger.info('RabbitMQ event consumers registered');
 
         app.listen(PORT, () => {
             logger.info(`Interaction Service running on port ${PORT}`);
