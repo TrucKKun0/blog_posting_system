@@ -5,13 +5,17 @@ const app = express();
 const logger = require('./utils/logger');
 const configuration = require('./config/corsConfig');
 const helmet = require('helmet');
-const feedRouter = require('./router/feedRouter');
+const router = require('./router/feedRouter');
 const errorHandler = require('./middlewares/errorHandler');
 const connectToMongoDB = require('./config/mongooseConfig');
 const cookieParser = require('cookie-parser');
 const requestLogger = require('./middlewares/requestLogger');
 const ipBasedRateLimiter = require('./utils/rateLimiter');
-const {connectToRabbitMQ} = require('./config/rabbitmqConfig');
+const {connectToRabbitMQ,consumeEvent} = require('./config/rabbitmqConfig');
+const {handlePostEvent} = require("./eventHandling/handlePostCreated");
+const {handlePostToPushFeed } = require("./eventHandling/handlePostPushToFeed");
+const {handleInteractionEvent} = require("./eventHandling/handleInteraction");
+const {handleFollowEvent} = require("./eventHandling/handleFollow");
 const PORT = process.env.PORT || 3000;
 
 connectToMongoDB();
@@ -26,7 +30,7 @@ app.use(ipBasedRateLimiter(100, 15 * 60 * 1000));
 app.use(requestLogger);
 
 // Routes
-app.use('/api/feed', feedRouter);
+app.use('/api/feed', router);
 
 app.use(errorHandler);
 
@@ -34,6 +38,16 @@ app.use(errorHandler);
 async function startServer(){
     try{
         await connectToRabbitMQ();
+        await consumeEvent("post.created",handlePostEvent);
+        await consumeEvent("post.deleted",handlePostEvent);
+        await consumeEvent("like.created",handleInteractionEvent);
+        await consumeEvent("like.deleted",handleInteractionEvent);
+        await consumeEvent("comment.created",handleInteractionEvent);
+        await consumeEvent("comment.deleted",handleInteractionEvent);
+        await consumeEvent("comment.reply",handleInteractionEvent);
+        await consumeEvent("user.follow",handleFollowEvent);
+        await consumeEvent("user.unfollow",handleFollowEvent);
+
         app.listen(PORT,()=>{
             logger.info(`Feed Service is running on port ${PORT}`);
         })

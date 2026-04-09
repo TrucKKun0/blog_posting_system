@@ -6,7 +6,7 @@ const feedSchema = new mongoose.Schema({
         required : true
     },
     postId : {
-        type : SVGAnimatedString,
+        type : String,
         required : true
     },
     authorId : {
