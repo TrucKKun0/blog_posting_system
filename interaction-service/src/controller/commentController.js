@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const logger = require("../utils/logger");
-const PostRefrence = require("../models/postRefrenceModel");
+const PostReference = require("../models/postReferenceModel");
 const Comment = require("../models/commentModel");
 const InteractionCount = require("../models/interactionCountModel");
 const OutBox = require("../models/OutBoxModel");
@@ -27,8 +27,8 @@ const postComment = async (req, res) => {
             });
         }
 
-        // ✅ Check post exists
-        const foundPost = await PostRefrence.findOne({ postId }).session(session);
+        
+        const foundPost = await PostReference.findOne({postId }).session(session);
 
         if (!foundPost) {
             await session.abortTransaction();
@@ -307,9 +307,28 @@ const deleteComment = async (req, res) => {
         });
     }
 };
+const getComments = async (req, res) => {
+    try {
+        const { postId } = req.query;
+
+        const comments = await Comment.find({ targetId: postId, isDeleted: false });
+
+        return res.status(200).json({
+            success: true,
+            data: comments
+        });
+    } catch (error) {
+        logger.error(`Error while fetching comments: ${error.message}`);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
 
 module.exports = {
     postComment,
     replyToComment,
-    deleteComment
+    deleteComment,
+    getComments
 };

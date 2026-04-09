@@ -30,22 +30,24 @@ const publishEvent  = async (routingKey,message)=>{
     logger.info(`Event published to exchange: ${EXCHANGE_NAME}, routing key: ${routingKey}, message: ${JSON.stringify(message)}`);
 }
 
-const consumeEvent = async (routingKey,callback)=>{
-    if(!channel){
-       await connectToRabbitMQ()
+const consumeEvent = async (routingKey, callback) => {
+    if (!channel) {
+        await connectToRabbitMQ();
     }
 
-     const q = await channel.assertQueue("",{exclusive : true});
-     await channel.bindQueue(q.queue,EXCHANGE_NAME,routingKey);
-     channel.consume(q.queue,(msg)=>{
-        if(msg !== null){
+    const q = await channel.assertQueue("", { exclusive: true });
+    await channel.bindQueue(q.queue, EXCHANGE_NAME, routingKey);
+
+    channel.consume(q.queue, (msg) => {
+        if (msg !== null) {
             const content = JSON.parse(msg.content.toString());
-            callback(content);
+            const eventType = msg.fields.routingKey; // ✅ extract from message
+
+            callback({ ...content, eventType }); // ✅ inject into event
             channel.ack(msg);
         }
+    });
 
-     });
-     logger.info(`Event consumed from RabbitMQ with routing key: ${routingKey}`);
-}
-
+    logger.info(`Consuming events with routing key: ${routingKey}`);
+};
 module.exports = {connectToRabbitMQ,publishEvent,consumeEvent};

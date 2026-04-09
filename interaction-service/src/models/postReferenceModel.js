@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const postRefrenceSchema = mongoose.Schema({
+const postReferenceSchema = mongoose.Schema({
     postId : {
         type: mongoose.Schema.Types.ObjectId,
         required : true
@@ -11,4 +11,4 @@ const postRefrenceSchema = mongoose.Schema({
     }
 },{timestamps : true});
 
-module.exports = mongoose.model("PostRefrence", postRefrenceSchema);
+module.exports = mongoose.model("PostReference", postReferenceSchema);   

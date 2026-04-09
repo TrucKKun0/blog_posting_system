@@ -1,7 +1,7 @@
 const Like = require("../models/likeModel")
 const logger = require("../utils/logger");
 const InteractionCount = require("../models/interactionCountModel");
-const PostRefrence = require("../models/postRefrenceModel");
+const PostRefrence = require("../models/postReferenceModel");
 const Comment = require("../models/commentModel");
 const mongoose = require("mongoose");
 const {v4 : uuidv4} = require("uuid");
@@ -38,7 +38,7 @@ const createLike = async (req,res)=>{
            }
         }
         //Check if the target exists (for comments).
-        if(targetType === "COMMENT"){
+        if(targetType === "comment"){
             const foundComment = await Comment.findOne({_id : targetId}).session(session);
         // If comment not found then abort the transaction and end the session and return 404 not found response
             if(!foundComment){
