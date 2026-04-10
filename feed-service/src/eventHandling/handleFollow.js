@@ -1,5 +1,5 @@
 const logger = require("../utils/logger");
-const SocialRefrence = require("../models/socialRefrence");
+const SocialRefrence = require("../models/socialReference");
 
 const handleFollowEvent = async(event)=>{
     try{

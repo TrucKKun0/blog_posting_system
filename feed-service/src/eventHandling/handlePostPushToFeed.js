@@ -1,6 +1,6 @@
 const logger = require('../utils/logger');
 const Feed = require("../models/feedModel");
-const SocialRefrence = require("../models/socialRefrence");
+const SocialRefrence = require("../models/socialReference");
 
 
 

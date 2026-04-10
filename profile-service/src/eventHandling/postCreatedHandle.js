@@ -3,7 +3,7 @@ const UserProfile = require('../models/userProfile');
 
 const handlePostCreated = async (event)=>{
    const result = await UserProfile.updateOne({
-        userId : event.userId,
+        userId : event.authorId,
         processedEvent : {$ne : event.eventId}
     },
     {

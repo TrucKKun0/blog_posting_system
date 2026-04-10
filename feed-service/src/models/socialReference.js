@@ -11,4 +11,4 @@ const socialRefrenceSchema = new mongoose.Schema({
 }, { timestamps: true });
 socialRefrenceSchema.index({ followerId: 1, followingId: 1 }, { unique: true });
 
-module.exports = mongoose.model("SocialRefrence", socialRefrenceSchema);
+module.exports = mongoose.model("SocialReference", socialRefrenceSchema);

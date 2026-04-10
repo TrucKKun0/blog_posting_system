@@ -111,33 +111,30 @@ const handleLikeEvent = async (event) => {
       return;
     }
 
-    // ✅ Use _id instead of postId
-    const updatedPost = await Post.findOneAndUpdate(
+    const result = await Post.updateOne(
       eventType === "like.deleted"
         ? { _id: postObjectId, likeCount: { $gt: 0 } }
         : { _id: postObjectId },
-      updateQuery,
-      { new: true },
+      updateQuery
     );
 
-    if (!updatedPost) {
+    // ✅ SAME BEHAVIOR AS COMMENT HANDLER
+    if (result.matchedCount === 0) {
       logger.warn(`Post not found, retrying: ${data.targetId}`);
-      return;
+      throw new Error("RETRY_EVENT"); // 🔥 IMPORTANT
     }
 
-    logger.info("Updated Post:", updatedPost);
-
-    // ✅ Mark event as processed
     await ProcessedEvent.create({ eventId });
 
     logger.info(`Like count updated for postId: ${data.targetId}`);
+
   } catch (error) {
     logger.error("Error handling like event", {
       error: error.message,
       event,
     });
 
-    // ❗ IMPORTANT → allow retry
+    // 🔥 MUST THROW FOR RETRY
     throw error;
   }
 };

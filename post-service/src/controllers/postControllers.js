@@ -10,12 +10,19 @@ const mongoose = require("mongoose");
 const { validatePost } = require("../utils/validatePost");
 const { publishEvent } = require("../config/rabbitMQConfig");
 
+const generateSnippet = (text, maxLength = 120) => {
+  if (!text) return "";
+  return text.length > maxLength 
+    ? text.substring(0, maxLength) + "..." 
+    : text;
+};
 
 const createPost = async (req, res) => {
   logger.info("Create Post Controller");
   const session = await mongoose.startSession();
   session.startTransaction(); 
   try {
+    const snippet = generateSnippet(req.body.content);
     const { userId } = req.user;
     const { title, category, status, content } = req.body;
 
@@ -96,8 +103,11 @@ const createPost = async (req, res) => {
       eventId,
       eventType : 'post.published',
       postId : createdPost._id,
-      userId,
+      authorId : userId,
       title,
+      category,
+      content : snippet,
+      mediaUrl : postImageUrl,
       slug : createdPost.slug,
       status,
       publishedAt : createdPost.publishedAt

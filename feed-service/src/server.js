@@ -13,8 +13,7 @@ const requestLogger = require('./middlewares/requestLogger');
 const ipBasedRateLimiter = require('./utils/rateLimiter');
 const {connectToRabbitMQ,consumeEvent} = require('./config/rabbitmqConfig');
 const {handlePostEvent} = require("./eventHandling/handlePostCreated");
-const {handlePostToPushFeed } = require("./eventHandling/handlePostPushToFeed");
-const {handleInteractionEvent} = require("./eventHandling/handleInteraction");
+const {handleCommentEvent,handleLikeEvent} = require("./eventHandling/handleInteraction");
 const {handleFollowEvent} = require("./eventHandling/handleFollow");
 const PORT = process.env.PORT || 3000;
 
@@ -38,13 +37,13 @@ app.use(errorHandler);
 async function startServer(){
     try{
         await connectToRabbitMQ();
-        await consumeEvent("post.created",handlePostEvent);
+        await consumeEvent("post.published",handlePostEvent);
         await consumeEvent("post.deleted",handlePostEvent);
-        await consumeEvent("like.created",handleInteractionEvent);
-        await consumeEvent("like.deleted",handleInteractionEvent);
-        await consumeEvent("comment.created",handleInteractionEvent);
-        await consumeEvent("comment.deleted",handleInteractionEvent);
-        await consumeEvent("comment.reply",handleInteractionEvent);
+        await consumeEvent("like.created",handleLikeEvent);
+        await consumeEvent("like.deleted",handleLikeEvent);
+        await consumeEvent("comment.created",handleCommentEvent);
+        await consumeEvent("comment.deleted",handleCommentEvent);
+        await consumeEvent("comment.reply",handleCommentEvent);
         await consumeEvent("user.follow",handleFollowEvent);
         await consumeEvent("user.unfollow",handleFollowEvent);
 

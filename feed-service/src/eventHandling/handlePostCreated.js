@@ -1,33 +1,45 @@
 const logger = require("../utils/logger");
 const PostReference = require("../models/postReference");
 const { handlePostPushToFeed } = require("./handlePostPushToFeed");
+const SocialReference = require("../models/socialReference");
 
-const handlePostEvent = async (event)=>{
-    try{
-        const {eventType, payload} = event;
-        const {postId, authorId} = payload;
-        logger.info(`Received event: ${eventType} → postId: ${postId}, authorId: ${authorId}`);
+const handlePostEvent = async (event) => {
+  try {
+    const { eventType, postId, authorId } = event;
 
-        if(eventType === "post.created"){
-            await handlePostPushToFeed(event);
-            const {content,mediaUrl} = payload;
-            await PostReference.findOneAndUpdate({postId, authorId},
-                {$setOnInsert : {postId, authorId, content, mediaUrl} },
-                {upsert : true, new: true}
-            );
-            logger.info(`Created post reference: postId: ${postId}, authorId: ${authorId}`);
-        }
-            else if(eventType === "post.deleted"){
-           const result = await PostReference.deleteOne({postId});
-           if(result.deletedCount > 0){
-            logger.info(`Deleted post reference: postId: ${postId}`);
-           } else{
-            logger.warn(`Post reference not found for deletion: postId: ${postId}`);
-           }
-            }
-    }catch(error){
-        logger.error(`Error handling post event: ${error.message}`);
+    logger.info(
+      `Received event: ${eventType} → postId: ${postId}, authorId: ${authorId}`,
+    );
+
+    if (eventType === "post.published") {
+      const followers = await SocialReference.find({ followingId: authorId });
+
+      if (followers.length > 0) {
+        await handlePostPushToFeed(event);
+        logger.info(`Post pushed to feed (followers exist)`);
+      } else {
+        logger.info(`Post not pushed (no followers)`);
+      }
+      const { content, mediaUrl } = event;
+      await PostReference.findOneAndUpdate(
+        { postId, authorId },
+        { $setOnInsert: { postId, authorId, content, mediaUrl } },
+        { upsert: true},
+      );
+      logger.info(
+        `Created post reference: postId: ${postId}, authorId: ${authorId}`,
+      );
+    } else if (eventType === "post.deleted") {
+      const result = await PostReference.deleteOne({ postId });
+      if (result.deletedCount > 0) {
+        logger.info(`Deleted post reference: postId: ${postId}`);
+      } else {
+        logger.warn(`Post reference not found for deletion: postId: ${postId}`);
+      }
     }
-}
+  } catch (error) {
+    logger.error(`Error handling post event: ${error.message}`);
+  }
+};
 
-module.exports = {handlePostEvent};
+module.exports = { handlePostEvent };

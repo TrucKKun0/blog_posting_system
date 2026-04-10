@@ -23,7 +23,7 @@ const PostSchema = mongoose.Schema(
       required: true,
       ref: "Content",
     },
-    likesCount: {
+    likeCount: {
       type: Number,
       default: 0,
     },

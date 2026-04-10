@@ -1,5 +1,6 @@
 const amqp = require("amqplib");
 const logger = require("../utils/logger");
+const EXCHANGE_NAME = process.env.EXCHANGE_NAME
 let connection = null;
 let channel = null;
 const connectToRabbitMQ = async ()=>{
@@ -23,19 +24,24 @@ channel.pulish(process.env.EXCHANGE_NAME, routingKey, Buffer.from(JSON.stringify
 logger.info(`Event published to RabbitMQ with routing key: ${routingKey}`);
 }
 
-const consumeEvent = async(routingKey,callback)=>{
-    if(!channel){
+const consumeEvent = async (routingKey, callback) => {
+    if (!channel) {
         await connectToRabbitMQ();
     }
-    await channel.assertQueue(process.env.FEED_QUEUE_NAME,{durable : true});
-    await channel.bindQueue(process.env.FEED_QUEUE_NAME,process.env.EXCHANGE_NAME,routingKey);
-    channel.consume(process.env.FEED_QUEUE_NAME,(msg)=>{
-        if(msg !== null){
+
+    const q = await channel.assertQueue("", { exclusive: true });
+    await channel.bindQueue(q.queue, EXCHANGE_NAME, routingKey);
+
+    channel.consume(q.queue, (msg) => {
+        if (msg !== null) {
             const content = JSON.parse(msg.content.toString());
-            callback(content);
+            const eventType = msg.fields.routingKey; // ✅ extract from message
+
+            callback({ ...content, eventType }); // ✅ inject into event
             channel.ack(msg);
         }
-    },{noAck : false});
-    logger.info(`Event consumed from RabbitMQ with queue name : ${process.env.FEED_QUEUE_NAME}`);
-}
+    });
+
+    logger.info(`Consuming events with routing key: ${routingKey}`);
+};
 module.exports = {connectToRabbitMQ, publishEvent, consumeEvent};
