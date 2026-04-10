@@ -15,6 +15,7 @@ const {connectToRabbitMQ,consumeEvent} = require('./config/rabbitmqConfig');
 const {handlePostEvent} = require("./eventHandling/handlePostCreated");
 const {handleCommentEvent,handleLikeEvent} = require("./eventHandling/handleInteraction");
 const {handleFollowEvent} = require("./eventHandling/handleFollow");
+const { handlePostCreatedTrending } = require('./eventHandling/handleTrendingPost');
 const PORT = process.env.PORT || 3000;
 
 connectToMongoDB();
@@ -39,6 +40,7 @@ async function startServer(){
         await connectToRabbitMQ();
         await consumeEvent("post.published",handlePostEvent);
         await consumeEvent("post.deleted",handlePostEvent);
+        await consumeEvent("post.published",handlePostCreatedTrending);
         await consumeEvent("like.created",handleLikeEvent);
         await consumeEvent("like.deleted",handleLikeEvent);
         await consumeEvent("comment.created",handleCommentEvent);

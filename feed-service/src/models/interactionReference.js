@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const InteractionRefrenceSchema = new mongoose.Schema({
     postId : {
         type : String,
-        unique : true
+        unique : true,
+        required : true
     },
     likeCount : {
         type : Number,
@@ -15,5 +16,6 @@ const InteractionRefrenceSchema = new mongoose.Schema({
     }
 },{timestamps : true});
 
-const InteractionRefrence = mongoose.model("InteractionRefrence", InteractionRefrenceSchema);
-module.exports = InteractionRefrence;
+InteractionRefrenceSchema.index({ postId: 1, unique: true });
+
+module.exports = mongoose.model("InteractionReference", InteractionRefrenceSchema);

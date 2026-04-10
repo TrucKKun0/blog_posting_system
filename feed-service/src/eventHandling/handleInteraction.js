@@ -1,7 +1,7 @@
 const ProcessedEvent = require("../models/processEvent");
 const logger = require("../utils/logger");
 const PostRefrence = require("../models/postReference");
-const InteractionReference = require("../models/interactionReference");
+
 const handleCommentEvent = async (event) => {
   try {
     const { eventId, data, eventType } = event;
@@ -35,18 +35,19 @@ const handleCommentEvent = async (event) => {
       return;
     }
 
-    // ✅ Use _id instead of postId
-    const result = await InteractionReference.updateOne(
+    const result = await PostRefrence.updateOne(
       eventType === "comment.deleted"
         ? { postId, commentCount: { $gt: 0 } }
         : { postId },
-      updateQuery,
+      updateQuery,{
+        upsert: true, // Create document if it doesn't exist
+      }
     );
 
     // ❗ Retry if post not found
     if (result.matchedCount === 0) {
       logger.warn(`Post not found, retrying: ${data.targetId}`);
-      throw new Error("RETRY_EVENT");
+      return;
     }
 
     await ProcessedEvent.create({ eventId });
@@ -57,9 +58,6 @@ const handleCommentEvent = async (event) => {
       error: error.message,
       event,
     });
-
-    // ❗ IMPORTANT → allow retry
-    throw error;
   }
 };
 
@@ -74,7 +72,6 @@ const handleLikeEvent = async (event) => {
 
     const postId = data.targetId;
 
-    // ✅ Idempotency check
     const alreadyProcessed = await ProcessedEvent.findOne({ eventId });
     if (alreadyProcessed) {
       logger.info(`Duplicate event ignored: ${eventId}`);
@@ -92,11 +89,14 @@ const handleLikeEvent = async (event) => {
       return;
     }
 
-    const result = await Post.updateOne(
+    const result = await PostRefrence.updateOne(
       eventType === "like.deleted"
         ? { postId, likeCount: { $gt: 0 } }
         : { postId },
       updateQuery,
+      {
+        upsert: true, // Create document if it doesn't exist
+      }
     );
 
     // ✅ SAME BEHAVIOR AS COMMENT HANDLER
@@ -114,8 +114,7 @@ const handleLikeEvent = async (event) => {
       event,
     });
 
-    // 🔥 MUST THROW FOR RETRY
-    throw error;
+    
   }
 };
 

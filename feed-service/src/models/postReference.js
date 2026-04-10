@@ -17,11 +17,16 @@ const postReferenceSchema = new mongoose.Schema({
         type : String,
         
     },
-    interactionId  : {
-        type : String,
+    likeCount : {
+        type : Number,
+        default : 0
+    },
+    commentCount : {
+        type : Number,
+        default : 0
     }
 },{timestamps : true});
 
-postReferenceSchema.index({postId : 1, authorId : 1,interactionId : 1,unique : true});
+postReferenceSchema.index({postId : 1, authorId : 1,unique : true});
 
 module.exports = mongoose.model("PostRefrence", postReferenceSchema);
