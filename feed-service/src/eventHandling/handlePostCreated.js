@@ -1,5 +1,5 @@
 const logger = require("../utils/logger");
-const PostReference = require("../models/postReference");
+const PostReferenceModel = require("../models/postReference");
 const { handlePostPushToFeed } = require("./handlePostPushToFeed");
 const SocialReference = require("../models/socialReference");
 
@@ -21,7 +21,7 @@ const handlePostEvent = async (event) => {
         logger.info(`Post not pushed (no followers)`);
       }
       const { content, mediaUrl } = event;
-      await PostReference.findOneAndUpdate(
+      await PostReferenceModel.findOneAndUpdate(
         { postId, authorId },
         { $setOnInsert: { postId, authorId, content, mediaUrl } },
         { upsert: true},
@@ -30,7 +30,7 @@ const handlePostEvent = async (event) => {
         `Created post reference: postId: ${postId}, authorId: ${authorId}`,
       );
     } else if (eventType === "post.deleted") {
-      const result = await PostReference.deleteOne({ postId });
+      const result = await PostReferenceModel.deleteOne({ postId });
       if (result.deletedCount > 0) {
         logger.info(`Deleted post reference: postId: ${postId}`);
       } else {

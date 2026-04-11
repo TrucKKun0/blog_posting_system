@@ -1,10 +1,9 @@
 const logger = require("./logger");
-const Trending = require("../models/trendingModel");
-
+const PostReferenceModel = require("../models/postReference");
 const getTrendingPosts = async (limit, skip)=>{
     
     try{
-        const trendingPosts = await Trending.find().sort({score : -1}).limit(limit).skip(skip);
+        const trendingPosts = await PostReferenceModel.find().sort({score : -1}).limit(limit).skip(skip);
         if(trendingPosts.length === 0){
             logger.info("No trending posts found.");
         }

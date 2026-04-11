@@ -26,6 +26,6 @@ const feedSchema = new mongoose.Schema({
     }
 },{timestamps : true});
 
-feedSchema.index({userId : 1, postId : 1,score : -1});
+feedSchema.index({userId : 1, postId : 1, score : -1});
 
-mongoose.exports = mongoose.model('Feed', feedSchema);
+module.exports = mongoose.model('Feed', feedSchema);

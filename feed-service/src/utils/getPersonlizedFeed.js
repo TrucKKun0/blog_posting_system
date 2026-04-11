@@ -1,7 +1,6 @@
 const logger = require('../utils/logger');
 const Feed = require("../models/feedModel");
-const Trending = require("../models/trendingModel");
-
+const PostReferenceModel = require("../models/postReference");
 const getPersonalizedFeed = async (userId, limit, skip) => {
     try {
         const personalizedFeed = await Feed.find({ userId })
@@ -9,7 +8,7 @@ const getPersonalizedFeed = async (userId, limit, skip) => {
             .limit(limit)
             .skip(skip);
 
-        const trendingPosts = await Trending.find()
+        const trendingPosts = await PostReferenceModel.find()
             .sort({ score: -1 })
             .limit(limit);
             

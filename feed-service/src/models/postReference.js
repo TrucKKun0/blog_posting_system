@@ -24,9 +24,13 @@ const postReferenceSchema = new mongoose.Schema({
     commentCount : {
         type : Number,
         default : 0
+    },
+    score : {
+        type : Number,
+        default : 0
     }
 },{timestamps : true});
 
-postReferenceSchema.index({postId : 1, authorId : 1,unique : true});
+postReferenceSchema.index({postId : 1, authorId : 1});
 
-module.exports = mongoose.model("PostRefrence", postReferenceSchema);
+module.exports = mongoose.model("PostReferenceModel", postReferenceSchema);

@@ -39,7 +39,7 @@
             await connectToRabbitMQ();
         }
         channel.publish(process.env.EXCHANGE_NAME,routingKey,Buffer.from(JSON.stringify(message)));
-        logger.info(`Event published to RabbitMQ with routing key: ${routingKey}`);
+        logger.info(`Event published to RabbitMQ exchange=${process.env.EXCHANGE_NAME} routingKey=${routingKey} message=${JSON.stringify(message)}`);
     }
 
     module.exports = {connectToRabbitMQ,consumeEvent,publishEvent};

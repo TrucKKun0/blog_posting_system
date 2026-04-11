@@ -61,8 +61,11 @@ const handleCommentEvent = async (event) => {
       throw new Error("RETRY_EVENT");
     }
 
-    // ✅ Mark event as processed
-    await ProcessedEvent.create({ eventId });
+  await ProcessedEvent.updateOne(
+        { eventId },
+        { $setOnInsert: { eventId } },
+        { upsert: true }
+      );
 
     logger.info(`Comment count updated for postId: ${data.targetId}`);
   } catch (error) {

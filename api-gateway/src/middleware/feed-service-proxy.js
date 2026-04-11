@@ -10,7 +10,11 @@ const feedServiceProxy = proxy(FEED_SERVICE_URL, {
         // Forward Authorization header if present
         if (srcReq.headers['authorization']) {
             proxyReqOpt.headers['Authorization'] = srcReq.headers['authorization'];
-            proxyReqOpt.headers["x-user-id"] = srcReq.user.userId;
+        }
+
+        // Forward user ID if available (set by optionAuthMiddleware)
+        if (srcReq.userId) {
+            proxyReqOpt.headers["x-user-id"] = srcReq.userId;
         }
 
         return proxyReqOpt;

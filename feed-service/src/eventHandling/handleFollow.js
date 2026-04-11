@@ -3,14 +3,14 @@ const SocialRefrence = require("../models/socialReference");
 
 const handleFollowEvent = async(event)=>{
     try{
-        const {eventType,payload} = event;
-        const {followerId , followingId} = payload;
+        const {eventType,data} = event;
+        const {followerId , followingId} = data;
         logger.info(`Received event: ${eventType} → followerId: ${followerId}, followingId: ${followingId}`);
         if(eventType === "user.follow"){
             await SocialRefrence.findOneAndUpdate(
                 {followerId,followingId},
                 {$setOnInsert : {followerId,followingId} },
-                {upsert : true, new: true}
+                {upsert : true, returnDocument : "after"}
             );
             logger.info(`Created follow relationship: ${followerId} → ${followingId}`);
         }else if(eventType === "user.unfollow"){    
