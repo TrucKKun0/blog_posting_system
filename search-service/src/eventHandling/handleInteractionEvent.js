@@ -1,7 +1,8 @@
-const logger = require('../logger');
+const logger = require('../utils/logger');
 const ProcessedEvent = require('../models/processEvent');
 const PostReference = require('../models/postReferenceModel');
 const handleCommentEvent = async (event) => {
+  logger.info(`Handling comment event: ${event.eventType} for postId: ${event.data?.targetId}`);
   try {
     const { eventId, data, eventType } = event;
 
@@ -10,20 +11,14 @@ const handleCommentEvent = async (event) => {
       return;
     }
 
-    // check if postId does belong to search service
-    const {postId} = data.targetId;
-    const existingPost = await Post.findOne({ postId });
-    if (!existingPost) {
-      logger.warn(`Post not found for comment event, ignoring: ${data.targetId}`);
+    // ✅ idempotency
+    const existing = await ProcessedEvent.findOne({ eventId });
+    if (existing) {
+      logger.info(`Duplicate comment event ignored: ${eventId}`);
       return;
     }
 
-    // ✅ Idempotency check
-    const alreadyProcessed = await ProcessedEvent.findOne({ eventId });
-    if (alreadyProcessed) {
-      logger.info(`Duplicate event ignored: ${eventId}`);
-      return;
-    }
+    const postId = data.targetId;
 
     let updateQuery;
 
@@ -32,40 +27,40 @@ const handleCommentEvent = async (event) => {
     } else if (eventType === "comment.deleted") {
       updateQuery = { $inc: { commentCount: -1 } };
     } else {
-      logger.warn(`Unknown eventType: ${eventType}`);
       return;
     }
 
-    // ✅ Use _id instead of postId
     const result = await PostReference.updateOne(
       eventType === "comment.deleted"
-        ? { _id: existingPost._id, commentCount: { $gt: 0 } }
-        : { _id: existingPost._id },
-      updateQuery,
+        ? { postId, commentCount: { $gt: 0 } }
+        : { postId },
+      updateQuery
     );
 
-    // ❗ Retry if post not found
     if (result.matchedCount === 0) {
-      logger.warn(`Post not found, retrying: ${data.targetId}`);
-      throw new Error("RETRY_EVENT");
+      logger.warn(`Post not found: ${postId}`);
+      return;
     }
 
-    // ✅ Mark event as processed
-    await ProcessedEvent.create({ eventId });
+    await ProcessedEvent.updateOne(
+      { eventId },
+      { $setOnInsert: { eventId } },
+      { upsert: true }
+    );
 
     logger.info(`Comment count updated for postId: ${data.targetId}`);
+
   } catch (error) {
+    console.error("FULL ERROR:", error);
     logger.error("Error handling comment event", {
       error: error.message,
       event,
     });
-
-    // ❗ IMPORTANT → allow retry
-    throw error;
   }
 };
 
 const handleLikeEvent = async (event) => {
+  logger.info(`Handling like event: ${event.eventType} for postId: ${event.data?.targetId}`);
   try {
     const { eventId, data, eventType } = event;
 
@@ -73,17 +68,11 @@ const handleLikeEvent = async (event) => {
       logger.error("Invalid event payload", { event });
       return;
     }
-    // check if postId does belong to search service
-    const {postId} = data.targetId;
-    const existingPost = await Post.findOne({ postId });
-    if (!existingPost) {
-      logger.warn(`Post not found for comment event, ignoring: ${data.targetId}`);
-      return;
-    }
-   
+    const postId = data.targetId;
+
     const alreadyProcessed = await ProcessedEvent.findOne({ eventId });
     if (alreadyProcessed) {
-      logger.info(`Duplicate event ignored: ${eventId}`);
+      logger.info(`Duplicate like event ignored: ${eventId}`);
       return;
     }
 
@@ -98,24 +87,24 @@ const handleLikeEvent = async (event) => {
       return;
     }
 
-    // ✅ Use _id instead of postId
-    const updatedPost = await   PostReference.findOneAndUpdate(
+    const result = await PostReference.updateOne(
       eventType === "like.deleted"
-        ? { _id: existingPost._id, likeCount: { $gt: 0 } }
-        : { _id: existingPost._id },
-      updateQuery,
-      { new: true },
+        ? { postId, likeCount: { $gt: 0 } }
+        : { postId },
+      updateQuery
     );
 
-    if (!updatedPost) {
-      logger.warn(`Post not found, retrying: ${data.targetId}`);
+    // ✅ SAME BEHAVIOR AS COMMENT HANDLER
+    if (result.matchedCount === 0) {
+      logger.warn(`Post reference not found for postId: ${postId}`);
       return;
     }
 
-    logger.info("Updated Post:", updatedPost);
-
-    await ProcessedEvent.create({ eventId });
-
+     await ProcessedEvent.updateOne(
+      { eventId },
+      { $setOnInsert: { eventId } },
+      { upsert: true }
+    );
     logger.info(`Like count updated for postId: ${data.targetId}`);
   } catch (error) {
     logger.error("Error handling like event", {
@@ -124,7 +113,6 @@ const handleLikeEvent = async (event) => {
     });
 
     
-
   }
 };
 

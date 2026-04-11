@@ -1,0 +1,58 @@
+
+require('dotenv').config();
+const express = require('express');
+const app = express();
+const logger = require('./utils/logger');
+const configuration = require('./config/corsConfig');
+const helmet = require('helmet');
+const router = require('./router/searchRouter');
+const errorHandler = require('./utils/errorHandler');
+const connectToMongoDB = require('./config/connectToDB');
+const cookieParser = require('cookie-parser');
+const requestLogger = require('./utils/requestLogger');
+const ipBasedRateLimiter = require('./config/ipBasedRateLimiter');
+const {connectToRabbitMQ,consumeEvent} = require('./config/configRabbitMQ');
+const {handlePostEvent} = require("./eventHandling/handlePostEvent");
+const {handleCommentEvent,handleLikeEvent} = require("./eventHandling/handleInteractionEvent");
+const PORT = process.env.PORT || 3000;
+
+connectToMongoDB();
+
+// Middleware
+app.use(express.json());
+app.use(configuration());
+app.use(helmet());
+app.use(cookieParser());
+app.use(ipBasedRateLimiter(100, 15 * 60 * 1000));
+// Request logging
+app.use(requestLogger);
+
+// Routes
+app.use('/api/search', router);
+
+app.use(errorHandler);
+
+// Start server
+async function startServer(){
+    try{
+        await connectToRabbitMQ();
+        await consumeEvent("post.published",handlePostEvent);
+        await consumeEvent("post.deleted",handlePostEvent);
+        await consumeEvent("like.created",handleLikeEvent);
+        await consumeEvent("like.deleted",handleLikeEvent);
+        await consumeEvent("comment.created",handleCommentEvent);
+        await consumeEvent("comment.deleted",handleCommentEvent);
+        
+
+        app.listen(PORT,()=>{
+            logger.info(`Search Service is running on port ${PORT}`);
+        })
+    }catch(error){
+        logger.error(`Error while starting server ${error.message}`);
+    }
+}
+startServer();
+
+process.on('unhandledRejection',(reason,promise)=>{
+    logger.error(`Unhandled Rejection at: ${promise} reason: ${reason}`);
+})

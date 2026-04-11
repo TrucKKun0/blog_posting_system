@@ -35,6 +35,6 @@ const postReferenceSchema = new mongoose.Schema({
     }
 })
 
-postReferenceSchema.index({tittle : 'text' , content : 'text',postId : 1,authorId : 1});
+postReferenceSchema.index({tittle : 'text' , content : 'text',postId : 1,authorId : 1,createdAt : 1,likeCount : 1,commentCount : 1,score : 1});
 
 module.exports = mongoose.model('PostReference',postReferenceSchema);
