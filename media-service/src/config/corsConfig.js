@@ -10,7 +10,8 @@ const configuration = ()=>{
                 'http://localhost:3001', // Identity Service
                 'http://localhost:3002', // Profile Service
                 'http://localhost:3003',  // Media Service 
-                'http://localhost:3004' // POST Service
+                'http://localhost:3004', // POST Service
+                'http://localhost:5173'   // Frontend Application
             ]
             if(!origin || allowedCors.indexOf(origin) !== -1){
                 callback(null,true);

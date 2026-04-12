@@ -5,28 +5,43 @@ const { getTrendingPosts } = require('../utils/getTrendingPost');
 const { getPersonalizedFeed } = require('../utils/getPersonlizedFeed');
 
 const getFeed = async (req,res)=>{
-    const userId = req.userId;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-    
-    if(!userId){
-        logger.info("Fetching feed for not logged in user");
-       const  trendingFeed = await getTrendingPosts(limit, skip);
-       res.status(200).json({
-        success : true,
-        data : trendingFeed
-       })
+    try {
+        const userId = req.userId;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
         
-    }else{
-        logger.info(`Fetching feed for user ${userId}`);
-        const personalizedFeed = await getPersonalizedFeed(userId, limit, skip);
-        res.status(200).json({
-            success : true,
-            data : personalizedFeed
-        })
+        logger.info(`Feed request received - userId: ${userId}, page: ${page}, limit: ${limit}`);
+        
+        if(!userId){
+            logger.info("Fetching feed for not logged in user");
+            const trendingFeed = await getTrendingPosts(limit, skip);
+            logger.info(`Returning ${trendingFeed.length} trending posts`);
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+            res.status(200).json({
+                success : true,
+                data : trendingFeed
+            });
+            
+        }else{
+            logger.info(`Fetching personalized feed for user ${userId}`);
+            const personalizedFeed = await getPersonalizedFeed(userId, limit, skip);
+            logger.info(`Returning ${personalizedFeed.length} posts for user ${userId}`);
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+            res.status(200).json({
+                success : true,
+                data : personalizedFeed
+            });
+        }
+    } catch (error) {
+        logger.error(`Error in getFeed: ${error.message}`);
+        logger.error(error.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch feed',
+            error: error.message
+        });
     }
-    
 }
 
 module.exports = {

@@ -5,10 +5,10 @@ const SocialReference = require("../models/socialReference");
 
 const handlePostEvent = async (event) => {
   try {
-    const { eventType, postId, authorId } = event;
+    const { eventType, postId, authorId, authorName } = event;
 
     logger.info(
-      `Received event: ${eventType} → postId: ${postId}, authorId: ${authorId}`,
+      `Received event: ${eventType} → postId: ${postId}, authorId: ${authorId}, authorName: ${authorName}`,
     );
 
     if (eventType === "post.published") {
@@ -20,14 +20,14 @@ const handlePostEvent = async (event) => {
       } else {
         logger.info(`Post not pushed (no followers)`);
       }
-      const { content, mediaUrl } = event;
+      const { content, mediaUrl, slug } = event;
       await PostReferenceModel.findOneAndUpdate(
         { postId, authorId },
-        { $setOnInsert: { postId, authorId, content, mediaUrl } },
+        { $setOnInsert: { postId, authorId, authorName: authorName || 'Unknown', content, mediaUrl, slug } },
         { upsert: true},
       );
       logger.info(
-        `Created post reference: postId: ${postId}, authorId: ${authorId}`,
+        `Created post reference: postId: ${postId}, authorId: ${authorId}, authorName: ${authorName} and slug: ${slug}`,
       );
     } else if (eventType === "post.deleted") {
       const result = await PostReferenceModel.deleteOne({ postId });

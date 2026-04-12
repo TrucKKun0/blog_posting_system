@@ -6,7 +6,7 @@ const SocialRefrence = require("../models/socialReference");
 
 const handlePostPushToFeed = async (event) => {
     try{
-        const{postId ,authorId} = event.payload;
+        const{postId ,authorId} = event;
         logger.info(`Pushing post ${postId} by author ${authorId} to followers' feeds`);
         const followers = await SocialRefrence.find({
             followingId : authorId

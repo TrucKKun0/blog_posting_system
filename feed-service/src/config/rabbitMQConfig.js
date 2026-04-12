@@ -33,7 +33,7 @@ const consumeEvent = async (routingKey, callback) => {
     // Create a unique queue for each routing key to prevent message collision
     const uniqueQueueName = `${QUEUE_NAME}_${routingKey}`;
     const q = await channel.assertQueue(uniqueQueueName, { durable: true });
-    await channel.bindQueue(q.queue, EXCHANGE_NAME, routingKey);
+    await channel.bindQueue(q.queue, process.env.EXCHANGE_NAME, routingKey);
 
     channel.consume(q.queue, async (msg) => {
         if (msg !== null) {

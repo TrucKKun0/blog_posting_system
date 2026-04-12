@@ -10,6 +10,7 @@ const corsConfiguration = () => {
         "http://localhost:3001", // Identity Service
         "http://localhost:3002", // profile  services
         "http://localhost:3003", // media Service
+        'http://localhost:5173'   // Frontend Application
       ];
       if (!origin || allowedOrgins.indexOf(origin) !== -1) {
         callback(null, true);

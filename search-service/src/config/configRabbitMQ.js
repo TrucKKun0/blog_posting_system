@@ -31,7 +31,7 @@ const consumeEvent = async (routingKey, callback) => {
     }
 
     const q = await channel.assertQueue("", { exclusive: true });
-    await channel.bindQueue(q.queue, EXCHANGE_NAME, routingKey);
+    await channel.bindQueue(q.queue, process.env.EXCHANGE_NAME, routingKey);
 
     channel.consume(q.queue, (msg) => {
         if (msg !== null) {

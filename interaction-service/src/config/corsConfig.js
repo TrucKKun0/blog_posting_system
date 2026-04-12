@@ -9,9 +9,10 @@ const corsConfiguration = ()=>{
                 'http://localhost:3002', // Profile Service
                 'http://localhost:3003', // Media Service
                 'http://localhost:3004', // Post Service
-                'http://localhost:3005'  // Social Service
+                'http://localhost:3005',  // Social Service
+                'http://localhost:5173'   // Frontend Application
             ]
-            if(!origin || allowedCors.indexOf(origin) ===-1){
+            if(!origin || allowedCors.indexOf(origin) !== -1){
                 callback(null,true);
             }else{
                 logger.error(`CORS error: Origin ${origin} not allowed`);
