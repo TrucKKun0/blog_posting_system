@@ -8,7 +8,9 @@ const configuration = () => {
             const allowedCors = [
                 'http://localhost:3000', // API Gateway
                 'http://localhost:3001', // Identity Service (self)
-                'http://localhost:3002'  // Other services
+                'http://localhost:3002',  // Other services
+                'http://localhost:5173'   // Another Frontend Application
+
             ];
 
             if (!origin || allowedCors.indexOf(origin) !== -1) {

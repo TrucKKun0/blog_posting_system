@@ -1,16 +1,14 @@
-const logger = require('../utils/logger');
+const logger =require('../utils/logger');
 
-const authRequest =  (req, res, next) =>{
-    const userId = req.headers['x-user-id'];
-    if(!userId){
-        logger.error(`Request without x-user-id header. Please Try again after login `);
-        return res.status(401).json({
-            success:false,
-            message:"Request without access token. Please Try again after login"
-        });
+const authRequest = (req,res,next)=>{
+    const userId = req.headers['x-user-id'] || null;
+    req.userId = userId;
+    if(userId ===null){
+        logger.info("Unauthenticated request received");
+    }else{
+        logger.info("Authenticated request received from userId: "+userId);
     }
-    req.user = {userId};  // ✅ Set as object with userId property
     next();
-}
 
+}
 module.exports = {authRequest};

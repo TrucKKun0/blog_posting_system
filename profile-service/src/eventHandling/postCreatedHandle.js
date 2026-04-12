@@ -24,7 +24,7 @@ const handlePostCreated = async (event)=>{
     }
     if(result.modifiedCount === 1){
         logger.info(`Post publish event processed successfully. 
-        userId=${event.userId}, eventId=${event.eventId}`);
+        userId=${event.authorId}, eventId=${event.eventId}`);
     }
 
 }

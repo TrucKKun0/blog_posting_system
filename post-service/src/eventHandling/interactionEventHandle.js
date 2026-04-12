@@ -69,6 +69,12 @@ const handleCommentEvent = async (event) => {
 
     logger.info(`Comment count updated for postId: ${data.targetId}`);
   } catch (error) {
+    // ✅ Gracefully handle duplicate key errors (idempotency)
+    if (error.code === 11000 || error.codeName === 'DuplicateKey') {
+      logger.info(`Duplicate comment event ignored: ${event?.eventId}`);
+      return;
+    }
+
     logger.error("Error handling comment event", {
       error: error.message,
       event,
@@ -127,11 +133,21 @@ const handleLikeEvent = async (event) => {
       throw new Error("RETRY_EVENT"); // 🔥 IMPORTANT
     }
 
-    await ProcessedEvent.create({ eventId });
+    await ProcessedEvent.updateOne(
+      { eventId },
+      { $setOnInsert: { eventId } },
+      { upsert: true }
+    );
 
     logger.info(`Like count updated for postId: ${data.targetId}`);
 
   } catch (error) {
+    // ✅ Gracefully handle duplicate key errors (idempotency)
+    if (error.code === 11000 || error.codeName === 'DuplicateKey') {
+      logger.info(`Duplicate like event ignored: ${event?.eventId}`);
+      return;
+    }
+
     logger.error("Error handling like event", {
       error: error.message,
       event,

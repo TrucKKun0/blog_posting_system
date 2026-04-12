@@ -10,8 +10,10 @@ const configuration = ()=>{
                 'http://localhost:3002', // Social Service (self)
                 'http://localhost:3003', // Media Service
                 'http://localhost:3004', // Post Service
+                'http://localhost:3005',  // Interaction Service
+                'http://localhost:5173'   // Frontend Application
             ]
-            if(!origin  || !allowedCors.includes(origin) === -1){
+            if(!origin || allowedCors.includes(origin)){
                 callback(null,true);
             }
             else{
@@ -26,4 +28,4 @@ const configuration = ()=>{
         maxAge : 3600
      });
 }
-module.exports = { configuration };
+module.exports = configuration ;

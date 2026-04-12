@@ -15,7 +15,16 @@ const getPersonalizedFeed = async (userId, limit, skip) => {
 
         if (!personalizedFeed || personalizedFeed.length === 0) {
             logger.info(`No personalized feed for user ${userId}, returning trending`);
-            return trendingPosts;
+            // Transform trending posts to include author object with username
+            const trendingWithAuthors = trendingPosts.map(post => ({
+                ...post.toObject(),
+                authorId: {
+                    _id: post.authorId,
+                    username: post.authorName || 'Unknown'
+                }
+            }));
+
+            return trendingWithAuthors;
         }
 
         const personalizedIds = new Set(
@@ -45,7 +54,19 @@ const getPersonalizedFeed = async (userId, limit, skip) => {
             tIndex++;
         }
 
-        return result.slice(0, limit);
+        const finalResult = result.slice(0, limit);
+
+        // Transform all posts to include author object with username
+        const resultWithAuthors = finalResult.map(post => ({
+            ...post.toObject(),
+            authorId: {
+                _id: post.authorId,
+                username: post.authorName || 'Unknown'
+            }
+        }));
+
+        logger.info(`Returning ${resultWithAuthors.length} posts for user ${userId} with author details`);
+        return resultWithAuthors;
 
     } catch (error) {
         logger.error(`Error fetching personalized feed: ${error.message}`);
