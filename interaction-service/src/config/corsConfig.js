@@ -1,4 +1,5 @@
 const cors = require("cors");
+const logger = require("../utils/logger");
 
 const corsConfiguration = ()=>{
     return cors({
@@ -20,8 +21,8 @@ const corsConfiguration = ()=>{
             }
         },
         allowedHeaders : ['Content-Type','Authorization','x-user-id'],
-        methods : ['GET','POST'],
-        preflightContinue : true,
+        methods : ['GET','POST','PUT','DELETE','OPTIONS'],
+        preflightContinue : false,
         optionsSuccessStatus : 204,
         maxAge : 3600
     })

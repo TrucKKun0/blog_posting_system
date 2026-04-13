@@ -15,6 +15,7 @@ const {connectToRabbitMQ,consumeEvent} = require('./config/rabbitMQConfig');
 const {handlePostEvent} = require("./eventHandling/handlePostCreated");
 const {handleCommentEvent,handleLikeEvent} = require("./eventHandling/handleInteraction");
 const {handleFollowEvent} = require("./eventHandling/handleFollow");
+const {handleProfileAvatarUpdate} = require("./eventHandling/handleProfileUpdate");
 const PORT = process.env.PORT || 3000;
 
 connectToMongoDB();
@@ -45,6 +46,7 @@ async function startServer(){
         await consumeEvent("comment.deleted",handleCommentEvent);
         await consumeEvent("user.follow",handleFollowEvent);
         await consumeEvent("user.unfollow",handleFollowEvent);
+        await consumeEvent("profile.avatar.updated",handleProfileAvatarUpdate);
 
         app.listen(PORT,()=>{
             logger.info(`Feed Service is running on port ${PORT}`);

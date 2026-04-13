@@ -13,6 +13,14 @@ const postReferenceSchema = new mongoose.Schema({
         type : String,
         required : true
     },
+    authorAvatarUrl : {
+        type : String,
+        default : null
+    },
+    title : {
+        type : String,
+        required : true
+    },
     slug : {
         type : String,
         required : true
@@ -23,7 +31,7 @@ const postReferenceSchema = new mongoose.Schema({
     },
     mediaUrl : {
         type : String,
-        
+
     },
     likeCount : {
         type : Number,

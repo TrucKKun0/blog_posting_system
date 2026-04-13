@@ -8,14 +8,16 @@ const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;
 const profileServiceProxy = proxy(PROFILE_SERVICE_URL,{
     ...proxyOption,
     proxyReqOptDecorator:(proxyOpt,srcReq)=>{
-        // Forward Authorization header if present
-        if(srcReq.headers['authorization']){
-            proxyOpt.headers["Authorization"] = srcReq.headers["authorization"];
+        const authHeader = srcReq.headers['authorization'] || srcReq.headers['Authorization'];
+        if(authHeader){
+            proxyOpt.headers["Authorization"] = authHeader;
             // Preserve original Content-Type (don't force JSON for file uploads)
             if(srcReq.headers['content-type']){
                 proxyOpt.headers["Content-Type"] = srcReq.headers['content-type'];
             }
-            proxyOpt.headers["x-user-id"] = srcReq.user.userId;
+            if(srcReq.user && srcReq.user.userId){
+                proxyOpt.headers["x-user-id"] = srcReq.user.userId;
+            }
         }
         return proxyOpt;
     },

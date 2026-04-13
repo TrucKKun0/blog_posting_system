@@ -26,22 +26,31 @@ const publishEvent = async (routingKey,message)=>{
 }
 
 const consumeEvent = async (routingKey, callback) => {
+    logger.info(`Attempting to consume events for routing key: ${routingKey}`);
     if (!channel) {
+        logger.info(`No channel found, connecting to RabbitMQ...`);
         await connectToRabbitMQ();
     }
 
     // Create a unique queue for each routing key to prevent message collision
     const uniqueQueueName = `${QUEUE_NAME}_${routingKey}`;
+    logger.info(`Asserting queue: ${uniqueQueueName}`);
     const q = await channel.assertQueue(uniqueQueueName, { durable: true });
+    logger.info(`Queue asserted: ${q.queue}`);
+    
+    logger.info(`Binding queue ${uniqueQueueName} to exchange ${process.env.EXCHANGE_NAME} with routing key ${routingKey}`);
     await channel.bindQueue(q.queue, process.env.EXCHANGE_NAME, routingKey);
+    logger.info(`Queue bound successfully`);
 
     channel.consume(q.queue, async (msg) => {
         if (msg !== null) {
             const content = JSON.parse(msg.content.toString());
             const eventType = msg.fields.routingKey; // ✅ extract from message
-            logger.info(`RabbitMQ consumed message with routing key: ${eventType}`);
+            logger.info(`RabbitMQ consumed message with routing key: ${eventType}, content: ${JSON.stringify(content)}`);
             await callback({ ...content, eventType }); // ✅ inject into event
             channel.ack(msg);
+        } else {
+            logger.warn(`Received null message for routing key: ${routingKey}`);
         }
     });
 

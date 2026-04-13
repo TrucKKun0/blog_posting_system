@@ -11,6 +11,7 @@ const registerUser = async(req,res)=>{
     try{
         logger.info("Register user endpoint hit");
         const {error} = await validateUserRegistration(req.body);
+        logger.info("Request Body:",req.body);
         if(error){
             logger.error("Validation Error while registering user",error.details[0].message);
             return res.status(400).json({
@@ -44,9 +45,9 @@ const registerUser = async(req,res)=>{
         const {accessToken,hashedRefreshToken} = await generateToken(user);
         res.cookie('refreshToken',hashedRefreshToken,{
             httpOnly:true,
-            secure:true,
-            sameSite:'strict',
-            maxAge : 7 * 24 * 60 * 60 * 1000 // 7 days
+            secure : process.env.NODE_ENV === 'production',
+            sameSite:'lax',
+            maxAge : 30 * 24 * 60 * 60 * 1000 // 30 days
         })
         res.status(201).json({
             success:true,
@@ -94,9 +95,9 @@ const loginUser = async(req,res)=>{
         const {accessToken,hashedRefreshToken} = await generateToken(user);
         res.cookie('refreshToken',hashedRefreshToken,{
             httpOnly : true,
-            secure : true,
-            sameSite : 'strict',
-            maxAge : 7 * 24 * 60 * 60 *1000 // 7 days
+            secure : process.env.NODE_ENV === 'production',
+            sameSite : 'lax',
+            maxAge : 30 * 24 * 60 * 60 *1000 // 30 days
         })
         res.status(200).json({
             success:true,

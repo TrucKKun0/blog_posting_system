@@ -75,7 +75,33 @@ const getUsersByIds = async (req, res) => {
     }
 };
 
+/**
+ * Get all users
+ */
+const getAllUsers = async (req, res) => {
+    try {
+        logger.info('Fetching all users');
+        
+        const users = await User.find().select('-password').sort({ createdAt: -1 });
+        
+        logger.info(`Found ${users.length} users`);
+        
+        res.status(200).json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        logger.error(`Error fetching all users: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch users',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getUserById,
-    getUsersByIds
+    getUsersByIds,
+    getAllUsers
 };

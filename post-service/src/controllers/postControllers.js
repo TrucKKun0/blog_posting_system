@@ -357,7 +357,7 @@ const getOnePost = async (req, res) => {
 
   try {
     const postSlug = req.params.slug;
-    const post = await Post.findOne({ slug: postSlug });
+    const post = await Post.findOne({ slug: postSlug }).populate('contentId');
 
     if (!post) {
       logger.error(`Post not found with slug: ${postSlug}`);
@@ -372,6 +372,7 @@ const getOnePost = async (req, res) => {
 
     const postWithAuthor = {
       ...post.toObject(),
+      content: post.contentId?.content || post.content || "",
       authorId: {
         _id: post.authorId,
         username: author?.username || "Unknown",
@@ -393,12 +394,62 @@ const getOnePost = async (req, res) => {
   }
 };
 
+const getOnePostById = async (req, res) => {
+  logger.info("Get One Post By ID Controller");
+
+  try {
+    const postId = req.params._id;
+    const post = await Post.findById(postId).populate('contentId');
+
+    if (!post) {
+      logger.error(`Post not found with ID: ${postId}`);
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Fetch author details
+    const author = await fetchUserById(post.authorId.toString());
+
+    const postWithAuthor = {
+      ...post.toObject(),
+      content: post.contentId?.content || post.content || "",
+      authorId: {
+        _id: post.authorId,
+        username: author?.username || "Unknown",
+        email: author?.email || null,
+      },
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Post fetched successfully",
+      data: postWithAuthor,
+    });
+  } catch (error) {
+    logger.error(`Error in getOnePostById: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 const deletePost = async (req, res) => {
   logger.info("Delete Post Controller");
 
   try {
-    const { userId } = req.user;
+    const { userId } = req.user || {};
     const postId = req.params._id;
+
+    if (!userId) {
+      logger.error(`User authentication failed - no userId found`);
+      return res.status(401).json({
+        success: false,
+        message: "User authentication failed",
+      });
+    }
 
     const postToDelete = await Post.findById(postId);
     if (!postToDelete) {
@@ -438,12 +489,175 @@ const deletePost = async (req, res) => {
     });
   }
 };
+const getCategoryPosts = async (req, res) => {
+  logger.info("Get Category Posts Controller");
+
+  try {
+    const category = req.params.category;
+
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        message: "Category is required",
+      });
+    }
+
+    const posts = await Post.find({ category })
+      .populate({
+        path: "contentId",
+        select: "content"
+      })
+      .sort({ createdAt: -1 });
+
+    if (posts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No posts found for this category",
+        data: [],
+      });
+    }
+
+    // Extract content as string from contentId object
+    const formattedPosts = posts.map(post => {
+      const obj = post.toObject();
+      return {
+        ...obj,
+        content: obj.contentId?.content || "",
+        contentId: undefined
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Category posts fetched successfully",
+      data: formattedPosts,
+    });
+
+  } catch (error) {
+    logger.error(`Error in getCategoryPosts: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const getAuthorPosts = async (req, res) => {
+  logger.info("Get Author Posts Controller");
+
+  try {
+    const { userId } = req.user || {};
+    const { authorId } = req.query;
+    const targetAuthorId = authorId || userId;
+
+    if (!targetAuthorId) {
+      return res.status(401).json({
+        success: false,
+        message: "User authentication failed",
+      });
+    }
+
+    const posts = await Post.find({ authorId: targetAuthorId })
+      .populate('contentId')
+      .sort({ createdAt: -1 });
+
+    // Fetch author details
+    const author = await fetchUserById(targetAuthorId);
+
+    const postsWithAuthor = posts.map(post => {
+      const obj = post.toObject();
+      return {
+        ...obj,
+        content: obj.contentId?.content || "",
+        author: {
+          _id: author?._id,
+          name: author?.username || "Unknown",
+          email: author?.email || null,
+        },
+        contentId: undefined
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Author posts fetched successfully",
+      blog: postsWithAuthor,
+    });
+  } catch (error) {
+    logger.error(`Error in getAuthorPosts: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+const postUpdate = async (req, res) => {
+  logger.info("Post Update Controller");
+  
+  try {
+    const { _id } = req.params;
+    const { title, content, category, status } = req.body;
+    const { userId } = req.user || {};
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User authentication failed",
+      });
+    }
+    
+    const post = await Post.findById(_id);
+    
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+    
+    if (post.authorId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this post",
+      });
+    }
+    
+    const updateData = {};
+    
+    if (title) updateData.title = title;
+    if (content) updateData.content = content;
+    if (category) updateData.category = category;
+    if (status) updateData.status = status;
+    
+    const updatedPost = await Post.findByIdAndUpdate(
+      _id,
+      { $set: updateData },
+      { new: true }
+    ).populate('contentId');
+    
+    return res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      data: updatedPost,
+    });
+    
+  } catch (error) {
+    logger.error(`Error in postUpdate: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
 
 module.exports = {
   createPost,
   deletePost,
   getAllPosts,
   getOnePost,
+  getOnePostById,
   updatePost,
   publishPost,
+  getCategoryPosts,
+  getAuthorPosts,
 };

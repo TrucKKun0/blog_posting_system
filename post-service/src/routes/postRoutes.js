@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const {createPost,deletePost,getAllPosts,getOnePost,updatePost,publishPost} = require('../controllers/postControllers');
+const {createPost,deletePost,getAllPosts,getOnePost,getOnePostById,updatePost,publishPost,getCategoryPosts,getAuthorPosts} = require('../controllers/postControllers');
 const {authRequest} = require("../middlewares/authRequest")
 const upload = multer({storage: multer.memoryStorage(), limits: {fileSize: 5 * 1024 * 1024}}); // 5MB limit
 
@@ -12,8 +12,10 @@ router.post('/',upload.single('postImage'),createPost);
 router.post('/:_id/publish',upload.single('postImage'),publishPost);
 router.post('/:_id/delete',deletePost);
 router.get('/',getAllPosts);
+router.get('/author',getAuthorPosts);
+router.get('/category/:category',getCategoryPosts);
+router.get('/id/:_id',getOnePostById);
 router.get('/:slug',getOnePost);
 router.put('/:_id',upload.single('postImage'),updatePost);
-
 
 module.exports = router;

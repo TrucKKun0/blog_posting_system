@@ -22,7 +22,7 @@ app.use((req,res,next)=>{
 app.use(express.urlencoded({extended:true}));    
 app.use(corsConfiguration());
 app.use(requestLogger);
-app.use(ipBasedRateLimiter(50,15*60*1000)); // 50 requests per 15 minutes
+app.use(ipBasedRateLimiter(500,15*60*1000)); // 500 requests per 15 minutes
 app.use('/api/posts',postRoutes);
 app.use(errorHandler);
 

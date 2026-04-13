@@ -23,20 +23,6 @@ const createLike = async (req,res)=>{
                 message : "targetId and targetType are required"
             });
         }
-        //Check if the target exists (for posts). If target type is post then check whether post exists or not.
-        // If not then abort the transaction and end the session and return 404 not found response
-        if(targetType === "post"){
-           const foundPost = await PostRefrence.findOne({postId : targetId}).session(session);
-           if(!foundPost){
-            await session.abortTransaction();
-            session.endSession();
-               logger.error("Post not found");
-               return res.status(404).json({
-                   success : false,
-                   message : "Post not found"
-               });
-           }
-        }
         //Check if the target exists (for comments).
         if(targetType === "comment"){
             const foundComment = await Comment.findOne({_id : targetId}).session(session);
@@ -113,7 +99,40 @@ const createLike = async (req,res)=>{
 
 
 
+const getLikedPosts = async (req,res)=>{
+    logger.info("Get liked posts request received");
+    try{
+        const {userId} = req.user;
+        
+        if(!userId){
+            return res.status(401).json({
+                success : false,
+                message : "User ID is required"
+            });
+        }
+
+        // Get all likes by this user for posts
+        const likedPosts = await Like.find({userId, targetType : 'post'});
+        
+        logger.info(`Found ${likedPosts.length} liked posts for user ${userId}`);
+        
+        res.status(200).json({
+            success : true,
+            message : "Liked posts fetched successfully",
+            data : likedPosts
+        });
+    }catch(err){
+        logger.error("Error fetching liked posts", err);
+        res.status(500).json({
+            success : false,
+            message : "Internal Server Error"
+        });
+    }
+}
+
+
 module.exports = {
-    createLike
+    createLike,
+    getLikedPosts
 }
 

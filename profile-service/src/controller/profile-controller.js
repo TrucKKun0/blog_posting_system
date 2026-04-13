@@ -79,6 +79,17 @@ const updateUserProfile = async(req,res)=>{
                     message:`Profile not found for user ${userId}`
                 })
             }
+            
+            // Publish event if avatar was updated
+            if(updateData.avatarUrl) {
+                await publishEvent('profile.avatar.updated', {
+                    userId,
+                    avatarUrl: updateData.avatarUrl,
+                    avatarId: updateData.avatarId
+                });
+                logger.info(`Avatar update event published for user ${userId}`);
+            }
+            
             logger.info(`Profile updated successfully ${updatedProfile.userId}`);
             res.status(200).json({
                 success:true,
@@ -100,10 +111,10 @@ const getProfile = async(req,res)=>{
     try{
         const {userId} = req.user;
         const paramUserId= req.params.userId;
-        
+
         const isOwner = userId === paramUserId;
-        
-        
+
+
         const profile = await UserProfile.findOne({userId:paramUserId});
         if(!profile){
             logger.error(`Profile not found for user ${userId}`);
@@ -112,22 +123,46 @@ const getProfile = async(req,res)=>{
                 message:`Profile not found for user ${userId}`
             })
         }
+
+        // Fetch user details from identity service
+        let userData = {};
+        try {
+            const userResponse = await axios.get(
+                `http://localhost:3001/api/auth/user/${paramUserId}`,
+                {
+                    headers: {
+                        'x-user-id': userId
+                    }
+                }
+            );
+            if (userResponse.data && userResponse.data.success && userResponse.data.data) {
+                userData = {
+                    name: userResponse.data.data.username,
+                    email: userResponse.data.data.email,
+                    username: userResponse.data.data.username
+                };
+            }
+        } catch (error) {
+            logger.error(`Failed to fetch user details from identity service: ${error.message}`);
+        }
+
         const profileData = {
             userId:profile.userId,
-            avatarId:profile.avatarId,
+            avatarUrl: profile.avatarUrl,
             bio:profile.bio,
             publishedPost:profile.publishedPost,
             followerCount:profile.followerCount,
-            followingCount:profile.followingCount
+            followingCount:profile.followingCount,
+            ...userData
         }
-        
+
         return res.status(200).json({
             success:true,
             message:isOwner ? "You can edit your profile" : `Profile fetched successfully for user ${paramUserId}`,
             isOwner,
             data:profileData
         })
-        
+
     }
     catch(error){
         logger.error(`Error while fetching profile ${error.message}`);

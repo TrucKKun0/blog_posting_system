@@ -1,6 +1,7 @@
 const ProcessedEvent = require("../models/processEvent");
 const logger = require("../utils/logger");
 const PostReferenceModel = require("../models/postReference");
+const UserLikeReference = require("../models/userLikeReference");
 const { calculateTrendingSocre } = require("../utils/calculateTrendingScore");
 
 const handleCommentEvent = async (event) => {
@@ -67,11 +68,12 @@ const handleLikeEvent = async (event) => {
   try {
     const { eventId, data, eventType } = event;
 
-    if (!data?.targetId || !eventType) {
+    if (!data?.targetId || !eventType || !data?.userId) {
       logger.error("Invalid event payload", { event });
       return;
     }
     const postId = data.targetId;
+    const userId = data.userId;
 
     const alreadyProcessed = await ProcessedEvent.findOne({ eventId });
     if (alreadyProcessed) {
@@ -83,8 +85,18 @@ const handleLikeEvent = async (event) => {
 
     if (eventType === "like.created") {
       updateQuery = { $inc: { likeCount: 1 } };
+      // Store user like reference
+      const result = await UserLikeReference.findOneAndUpdate(
+        { userId, targetId: postId, targetType: 'post' },
+        { userId, targetId: postId, targetType: 'post' },
+        { upsert: true, new: true }
+      );
+      logger.info(`User like reference created for userId: ${userId}, postId: ${postId}, result: ${result}`);
     } else if (eventType === "like.deleted") {
       updateQuery = { $inc: { likeCount: -1 } };
+      // Remove user like reference
+      await UserLikeReference.deleteOne({ userId, targetId: postId, targetType: 'post' });
+      logger.info(`User like reference deleted for userId: ${userId}, postId: ${postId}`);
     } else {
       logger.warn(`Unknown eventType: ${eventType}`);
       return;
@@ -97,10 +109,10 @@ const handleLikeEvent = async (event) => {
       updateQuery
     );
 
-    // ✅ SAME BEHAVIOR AS COMMENT HANDLER
+    // PostReference update is optional - like status is stored in UserLikeReference
     if (result.matchedCount === 0) {
-      logger.warn(`Post reference not found for postId: ${postId}`);
-      return;
+      logger.info(`Post reference not found for postId: ${postId} (optional for like tracking)`);
+      // Continue without error - like status is already stored in UserLikeReference
     }
 
      await ProcessedEvent.updateOne(

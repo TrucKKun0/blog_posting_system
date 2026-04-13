@@ -3,6 +3,11 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const validateToken = (req,res,next)=>{
+    // Skip token validation for OPTIONS preflight requests
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
+
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if(!token){

@@ -22,8 +22,8 @@ const configuration = ()=>{
             }
         },
         allowedHeaders : ['Content-Type','Authorization'],
-        methods : ['GET','POST'],
-        preflightContinue : true,
+        methods : ['GET','POST','PUT','DELETE','OPTIONS'],
+        preflightContinue : false,
         optionsSuccessStatus : 204,
         maxAge : 3600
      });

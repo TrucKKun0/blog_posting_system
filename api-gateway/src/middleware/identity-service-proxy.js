@@ -11,7 +11,15 @@ const identityServiceProxy = proxy(IDENTITY_SERVICE_URL, {
         if (srcReq.headers['authorization']) {
             proxyReqOpt.headers['Authorization'] = srcReq.headers['authorization'];
         }
+        // Forward Content-Type header
+        if (srcReq.headers['content-type']) {
+            proxyReqOpt.headers['Content-Type'] = srcReq.headers['content-type'];
+        }
         return proxyReqOpt;
+    },
+    proxyReqBodyDecorator: (bodyContent, srcReq) => {
+        // Forward the body as-is
+        return bodyContent;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
         // Log proxy response

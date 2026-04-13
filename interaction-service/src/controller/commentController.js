@@ -19,7 +19,7 @@ const postComment = async (req, res) => {
     try {
         const { postId, content } = req.body;
 
-        // ✅ Validation
+        // Validation
         if (!postId || !content) {
             return res.status(400).json({
                 success: false,
@@ -27,26 +27,11 @@ const postComment = async (req, res) => {
             });
         }
 
-        
-        const foundPost = await PostReference.findOne({postId }).session(session);
-
-        if (!foundPost) {
-            await session.abortTransaction();
-            session.endSession();
-
-            logger.error(`Post not found with postId ${postId}`);
-
-            return res.status(404).json({
-                success: false,
-                message: "Post not found"
-            });
-        }
-
         const { userId } = req.user;
         const eventId = uuidv4();
         const targetType = "post";
 
-        // ✅ Create comment
+        // Create comment
         const newCommentArr = await Comment.create([{
             userId,
             targetId: postId,
@@ -56,14 +41,14 @@ const postComment = async (req, res) => {
 
         const newComment = newCommentArr[0];
 
-        // ✅ Update interaction count
+        // Update interaction count
         await InteractionCount.updateOne(
             { targetId: postId, targetType },
             { $inc: { commentCount: 1 } },
             { upsert: true, session }
         );
 
-        // ✅ Create outbox event
+        // Create outbox event
         await OutBox.create([{
             eventId,
             eventType: "comment.created",
@@ -76,7 +61,7 @@ const postComment = async (req, res) => {
             }
         }], { session });
 
-        // ✅ Commit
+        // Commit
         await session.commitTransaction();
         session.endSession();
 
@@ -311,14 +296,80 @@ const getComments = async (req, res) => {
     try {
         const { postId } = req.query;
 
+        logger.info(`Fetching comments for postId: ${postId}`);
+
         const comments = await Comment.find({ targetId: postId, isDeleted: false });
+
+        logger.info(`Found ${comments.length} comments for postId: ${postId}`);
+
+        // Fetch user details for each comment
+        const userIds = [...new Set(comments.map(c => c.userId.toString()))];
+        const axios = require('axios');
+        const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL;
+
+        logger.info(`Fetching user details for userIds: ${userIds}`);
+
+        let userDetails = {};
+        if (userIds.length > 0) {
+            try {
+                const userResponse = await axios.post(`${IDENTITY_SERVICE_URL}/api/auth/users/batch`, { userIds });
+                logger.info(`User response: ${JSON.stringify(userResponse.data)}`);
+                if (userResponse.data && userResponse.data.data) {
+                    userDetails = userResponse.data.data.reduce((acc, user) => {
+                        acc[user._id] = {
+                            name: user.username,
+                            email: user.email,
+                            avatar: null
+                        };
+                        return acc;
+                    }, {});
+                    logger.info(`User details fetched: ${Object.keys(userDetails)}`);
+                }
+            } catch (error) {
+                logger.error(`Failed to fetch user details: ${error.message}`);
+            }
+        }
+
+        // Attach user details to comments
+        const commentsWithUsers = comments.map(comment => ({
+            ...comment.toObject(),
+            author: userDetails[comment.userId.toString()] || {
+                name: 'Unknown',
+                email: null,
+                avatar: null
+            }
+        }));
+
+        logger.info(`Returning ${commentsWithUsers.length} comments with authors`);
+
+        return res.status(200).json({
+            success: true,
+            data: commentsWithUsers
+        });
+    } catch (error) {
+        logger.error(`Error while fetching comments: ${error.message}`);
+        logger.error(error.stack);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+const getAllComments = async (req, res) => {
+    try {
+        logger.info("Fetching all comments");
+
+        const comments = await Comment.find({ isDeleted: false })
+            .sort({ createdAt: -1 })
+            .limit(100);
 
         return res.status(200).json({
             success: true,
             data: comments
         });
     } catch (error) {
-        logger.error(`Error while fetching comments: ${error.message}`);
+        logger.error(`Error while fetching all comments: ${error.message}`);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"
@@ -330,5 +381,6 @@ module.exports = {
     postComment,
     replyToComment,
     deleteComment,
-    getComments
+    getComments,
+    getAllComments
 };
